@@ -147,6 +147,8 @@ function close() {
           </select>
         </label>
 
+        <button class="row-btn" @click="ui.wizardOpen = true">{{ t('settings.texWizard') }}</button>
+
         <h2>{{ t('settings.shortcuts') }}</h2>
         <ul class="shortcuts">
           <li v-for="r in shortcutRows" :key="r.id">

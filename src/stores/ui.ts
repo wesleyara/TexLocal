@@ -49,6 +49,7 @@ export const useUiStore = defineStore('ui', () => {
   const layout = reactive<LayoutState>(load(project.value))
   const paletteMode = ref<PaletteMode>(null)
   const settingsOpen = ref(false)
+  const wizardOpen = ref(false)
 
   watch(
     layout,
@@ -85,6 +86,7 @@ export const useUiStore = defineStore('ui', () => {
     layout,
     paletteMode,
     settingsOpen,
+    wizardOpen,
     setProject,
     toggleSidebar,
     toggleBottom,

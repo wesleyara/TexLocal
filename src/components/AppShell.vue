@@ -9,6 +9,7 @@ import CommandPalette from './CommandPalette.vue'
 import SettingsDialog from './SettingsDialog.vue'
 import SplitHandle from './SplitHandle.vue'
 import StatusBar from './StatusBar.vue'
+import TexWizard from './TexWizard.vue'
 import TitleBar from './TitleBar.vue'
 import ToastHost from './ToastHost.vue'
 
@@ -18,10 +19,11 @@ const settings = useSettingsStore()
 
 function onKeydown(e: KeyboardEvent) {
   if (e.defaultPrevented) return
-  if (e.key === 'Escape' && (ui.paletteMode || ui.settingsOpen)) {
+  if (e.key === 'Escape' && (ui.paletteMode || ui.settingsOpen || ui.wizardOpen)) {
     e.preventDefault()
     ui.paletteMode = null
     ui.settingsOpen = false
+    ui.wizardOpen = false
     return
   }
   const overrides = settings.effective.keybindings
@@ -101,6 +103,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     <StatusBar />
     <CommandPalette />
     <SettingsDialog />
+    <TexWizard />
     <ToastHost />
   </div>
 </template>

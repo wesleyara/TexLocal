@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core'
 import { defineStore } from 'pinia'
+import { isTauri } from '../tauri'
 import { computed, ref } from 'vue'
 import {
   DEFAULT_SETTINGS,
@@ -9,8 +10,6 @@ import {
 } from '../settings/schema'
 
 const LS_KEY = 'texlocal.settings.v1'
-
-const isTauri = () => typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
 
 async function readGlobal(): Promise<Settings> {
   if (isTauri()) return validateSettings(await invoke('get_settings'))

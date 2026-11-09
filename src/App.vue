@@ -3,10 +3,16 @@ import { onMounted, watchEffect } from 'vue'
 import AppShell from './components/AppShell.vue'
 import { setLocale } from './i18n'
 import { useSettingsStore } from './stores/settings'
+import { useUiStore } from './stores/ui'
 
 const settings = useSettingsStore()
+const ui = useUiStore()
 
-onMounted(() => void settings.load())
+onMounted(async () => {
+  await settings.load()
+  // Primeira execução: o assistente abre até o usuário escolher ou pular.
+  if (settings.effective.texSource === 'unset') ui.wizardOpen = true
+})
 
 const dark = window.matchMedia('(prefers-color-scheme: dark)')
 

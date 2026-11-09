@@ -10,7 +10,16 @@ describe('validateSettings', () => {
     expect(() => validateSettings({ theme: 'neon' })).toThrow(/theme/)
     expect(() => validateSettings({ foo: 1 })).toThrow(/desconhecida/)
     expect(() => validateSettings({ keybindings: { a: 1 } })).toThrow(/keybindings/)
+    expect(() => validateSettings({ texSource: 'x' })).toThrow(/texSource/)
+    expect(() => validateSettings({ texBinDir: 1 })).toThrow(/texBinDir/)
     expect(() => validateSettings([])).toThrow()
+  })
+})
+
+describe('texBinDir', () => {
+  it('é aceito e preservado', () => {
+    const s = validateSettings({ texSource: 'system', texBinDir: '/usr/bin' })
+    expect(s.texBinDir).toBe('/usr/bin')
   })
 })
 

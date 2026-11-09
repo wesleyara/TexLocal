@@ -52,6 +52,11 @@ export function registerBuiltinCommands(): void {
     run: () => (ui().settingsOpen = true),
   })
   registerCommand({
+    id: 'tex.wizard',
+    titleKey: 'cmd.openTexWizard',
+    run: () => (ui().wizardOpen = true),
+  })
+  registerCommand({
     id: 'theme.toggle',
     titleKey: 'cmd.toggleTheme',
     run: () => {

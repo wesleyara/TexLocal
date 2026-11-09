@@ -1,6 +1,12 @@
 {
-  "app": { "name": "TexLocal" },
-  "menu": { "file": "File", "view": "View", "help": "Help" },
+  "app": {
+    "name": "TexLocal"
+  },
+  "menu": {
+    "file": "File",
+    "view": "View",
+    "help": "Help"
+  },
   "activity": {
     "files": "Files",
     "search": "Search",
@@ -8,10 +14,23 @@
     "git": "Git",
     "settings": "Settings"
   },
-  "sidebar": { "files": "Files", "empty": "No project open." },
-  "editor": { "title": "Editor", "placeholder": "Open a folder to start writing." },
-  "pdf": { "title": "PDF", "placeholder": "The compiled PDF will appear here." },
-  "bottom": { "problems": "Problems", "log": "Log", "noProblems": "No problems." },
+  "sidebar": {
+    "files": "Files",
+    "empty": "No project open."
+  },
+  "editor": {
+    "title": "Editor",
+    "placeholder": "Open a folder to start writing."
+  },
+  "pdf": {
+    "title": "PDF",
+    "placeholder": "The compiled PDF will appear here."
+  },
+  "bottom": {
+    "problems": "Problems",
+    "log": "Log",
+    "noProblems": "No problems."
+  },
   "layout": {
     "sidebarResize": "Resize sidebar",
     "pdfResize": "Resize PDF panel",
@@ -44,7 +63,8 @@
     "modeEditor": "Layout: editor only",
     "modePdf": "Layout: PDF only",
     "openSettings": "Open settings",
-    "toggleTheme": "Toggle light/dark theme"
+    "toggleTheme": "Toggle light/dark theme",
+    "openTexWizard": "Set up TeX…"
   },
   "settings": {
     "title": "Settings",
@@ -65,7 +85,8 @@
     "jsonApply": "Apply",
     "jsonInvalid": "Invalid JSON: {error}",
     "saved": "Settings saved.",
-    "saveFailed": "Could not save settings."
+    "saveFailed": "Could not save settings.",
+    "texWizard": "Set up TeX…"
   },
   "notify": {
     "center": "Notification center",
@@ -75,5 +96,31 @@
     "cancel": "Cancel",
     "dismiss": "Dismiss",
     "clear": "Clear"
+  },
+  "wizard": {
+    "title": "TeX setup",
+    "welcome": "TexLocal needs a TeX distribution to build your documents. Let’s look for one already installed on this computer.",
+    "start": "Look for TeX",
+    "skip": "Skip for now",
+    "detecting": "Looking for TeX distributions…",
+    "foundIntro": "We found these distributions. Choose which one to use:",
+    "noneFound": "No TeX distribution was found.",
+    "managedUnavailable": "The managed TeX Live install is not available in this version yet. Install TeX Live, MiKTeX or MacTeX and click Look again.",
+    "detectAgain": "Look again",
+    "detectFailed": "Could not look for TeX distributions.",
+    "useSelected": "Use selected",
+    "noLatexmk": "latexmk not found: automatic builds will need it.",
+    "noTlmgr": "No package manager: missing packages will not be installed automatically.",
+    "done": "All set! You can reopen this wizard in Settings.",
+    "close": "Close"
+  },
+  "tlmgr": {
+    "error": {
+      "offline": "Cannot reach the package repository. Check your internet; the install will be retried when you are online.",
+      "packageNotFound": "The package was not found in the repository.",
+      "permissionDenied": "No permission to write to the TeX installation.",
+      "cancelled": "Operation cancelled.",
+      "unknown": "The package manager failed. See the log for details."
+    }
   }
 }

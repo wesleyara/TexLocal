@@ -1,3 +1,5 @@
+mod tex_commands;
+
 use std::fs;
 use std::path::PathBuf;
 
@@ -42,7 +44,12 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             app_version,
             get_settings,
-            save_settings
+            save_settings,
+            tex_commands::detect_tex,
+            tex_commands::tex_profiles,
+            tex_commands::tex_disk_info,
+            tex_commands::project_manifest,
+            tex_commands::save_project_manifest
         ])
         .run(tauri::generate_context!())
         .expect("erro ao executar o TexLocal");
