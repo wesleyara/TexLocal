@@ -1,0 +1,79 @@
+{
+  "app": { "name": "TexLocal" },
+  "menu": { "file": "File", "view": "View", "help": "Help" },
+  "activity": {
+    "files": "Files",
+    "search": "Search",
+    "history": "History",
+    "git": "Git",
+    "settings": "Settings"
+  },
+  "sidebar": { "files": "Files", "empty": "No project open." },
+  "editor": { "title": "Editor", "placeholder": "Open a folder to start writing." },
+  "pdf": { "title": "PDF", "placeholder": "The compiled PDF will appear here." },
+  "bottom": { "problems": "Problems", "log": "Log", "noProblems": "No problems." },
+  "layout": {
+    "sidebarResize": "Resize sidebar",
+    "pdfResize": "Resize PDF panel",
+    "bottomResize": "Resize bottom panel"
+  },
+  "status": {
+    "branch": "Branch",
+    "sync": "Sync",
+    "compile": "Build",
+    "engine": "TeX engine",
+    "words": "Words",
+    "cursor": "Cursor position",
+    "eol": "End of line",
+    "spell": "Spell checker",
+    "notifications": "Notifications"
+  },
+  "palette": {
+    "commandsPlaceholder": "Type a command…",
+    "filesPlaceholder": "Search file by name…",
+    "noResults": "No results.",
+    "noFiles": "No project open to search files in.",
+    "recent": "Recent"
+  },
+  "cmd": {
+    "palette": "Show all commands",
+    "quickOpen": "Go to file…",
+    "toggleSidebar": "Toggle sidebar",
+    "toggleBottom": "Toggle bottom panel",
+    "modeSplit": "Layout: editor and PDF side by side",
+    "modeEditor": "Layout: editor only",
+    "modePdf": "Layout: PDF only",
+    "openSettings": "Open settings",
+    "toggleTheme": "Toggle light/dark theme"
+  },
+  "settings": {
+    "title": "Settings",
+    "search": "Search settings…",
+    "close": "Close",
+    "theme": "Theme",
+    "themeSystem": "Follow system",
+    "themeDark": "Dark",
+    "themeLight": "Light",
+    "language": "Language",
+    "languageAuto": "Automatic (system)",
+    "shortcuts": "Keyboard shortcuts",
+    "shortcutPress": "Press the new shortcut…",
+    "shortcutChange": "Change",
+    "shortcutReset": "Reset",
+    "shortcutConflict": "Conflicts with: {with}",
+    "json": "Edit JSON",
+    "jsonApply": "Apply",
+    "jsonInvalid": "Invalid JSON: {error}",
+    "saved": "Settings saved.",
+    "saveFailed": "Could not save settings."
+  },
+  "notify": {
+    "center": "Notification center",
+    "empty": "No notifications.",
+    "tasks": "Running tasks",
+    "noTasks": "No running tasks.",
+    "cancel": "Cancel",
+    "dismiss": "Dismiss",
+    "clear": "Clear"
+  }
+}

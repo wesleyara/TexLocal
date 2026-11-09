@@ -1,0 +1,79 @@
+{
+  "app": { "name": "TexLocal" },
+  "menu": { "file": "Arquivo", "view": "Exibir", "help": "Ajuda" },
+  "activity": {
+    "files": "Arquivos",
+    "search": "Buscar",
+    "history": "Histórico",
+    "git": "Git",
+    "settings": "Configurações"
+  },
+  "sidebar": { "files": "Arquivos", "empty": "Nenhum projeto aberto." },
+  "editor": { "title": "Editor", "placeholder": "Abra uma pasta para começar a escrever." },
+  "pdf": { "title": "PDF", "placeholder": "O PDF compilado aparecerá aqui." },
+  "bottom": { "problems": "Problemas", "log": "Log", "noProblems": "Nenhum problema." },
+  "layout": {
+    "sidebarResize": "Redimensionar barra lateral",
+    "pdfResize": "Redimensionar painel do PDF",
+    "bottomResize": "Redimensionar painel inferior"
+  },
+  "status": {
+    "branch": "Branch",
+    "sync": "Sincronização",
+    "compile": "Compilação",
+    "engine": "Motor TeX",
+    "words": "Palavras",
+    "cursor": "Posição do cursor",
+    "eol": "Fim de linha",
+    "spell": "Corretor",
+    "notifications": "Notificações"
+  },
+  "palette": {
+    "commandsPlaceholder": "Digite um comando…",
+    "filesPlaceholder": "Buscar arquivo por nome…",
+    "noResults": "Nenhum resultado.",
+    "noFiles": "Nenhum projeto aberto para buscar arquivos.",
+    "recent": "Recentes"
+  },
+  "cmd": {
+    "palette": "Mostrar todos os comandos",
+    "quickOpen": "Ir para arquivo…",
+    "toggleSidebar": "Alternar barra lateral",
+    "toggleBottom": "Alternar painel inferior",
+    "modeSplit": "Layout: editor e PDF lado a lado",
+    "modeEditor": "Layout: somente editor",
+    "modePdf": "Layout: somente PDF",
+    "openSettings": "Abrir configurações",
+    "toggleTheme": "Alternar tema claro/escuro"
+  },
+  "settings": {
+    "title": "Configurações",
+    "search": "Buscar configuração…",
+    "close": "Fechar",
+    "theme": "Tema",
+    "themeSystem": "Seguir o sistema",
+    "themeDark": "Escuro",
+    "themeLight": "Claro",
+    "language": "Idioma",
+    "languageAuto": "Automático (sistema)",
+    "shortcuts": "Atalhos de teclado",
+    "shortcutPress": "Pressione o novo atalho…",
+    "shortcutChange": "Alterar",
+    "shortcutReset": "Restaurar",
+    "shortcutConflict": "Conflito com: {with}",
+    "json": "Editar JSON",
+    "jsonApply": "Aplicar",
+    "jsonInvalid": "JSON inválido: {error}",
+    "saved": "Configurações salvas.",
+    "saveFailed": "Não foi possível salvar as configurações."
+  },
+  "notify": {
+    "center": "Central de notificações",
+    "empty": "Nenhuma notificação.",
+    "tasks": "Tarefas em andamento",
+    "noTasks": "Nenhuma tarefa em andamento.",
+    "cancel": "Cancelar",
+    "dismiss": "Dispensar",
+    "clear": "Limpar"
+  }
+}

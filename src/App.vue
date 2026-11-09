@@ -1,28 +1,24 @@
 <script setup lang="ts">
-import { useAppStore } from './stores/app'
+import { onMounted, watchEffect } from 'vue'
+import AppShell from './components/AppShell.vue'
+import { setLocale } from './i18n'
+import { useSettingsStore } from './stores/settings'
 
-const app = useAppStore()
+const settings = useSettingsStore()
+
+onMounted(() => void settings.load())
+
+const dark = window.matchMedia('(prefers-color-scheme: dark)')
+
+watchEffect(() => {
+  const theme = settings.effective.theme
+  document.documentElement.dataset.theme =
+    theme === 'system' ? (dark.matches ? 'dark' : 'light') : theme
+})
+
+watchEffect(() => setLocale(settings.effective.locale))
 </script>
 
 <template>
-  <main>
-    <h1>{{ app.name }}</h1>
-    <p>v{{ app.version }}</p>
-    <RouterView />
-  </main>
+  <AppShell />
 </template>
-
-<style>
-:root {
-  color-scheme: dark;
-}
-body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
-  background: #14161a;
-  color: #e6e8eb;
-}
-main {
-  padding: 2rem;
-}
-</style>

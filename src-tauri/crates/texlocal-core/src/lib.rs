@@ -1,5 +1,7 @@
 //! Tipos e utilitários compartilhados do TexLocal.
 
+pub mod settings;
+
 /// Versão do TexLocal (sincronizada pelo release-please).
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 

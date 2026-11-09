@@ -1,0 +1,74 @@
+/* Design tokens. Contraste de texto >= 4.5:1 (AA) nos dois temas. */
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #14161a;
+  --bg-panel: #1b1e24;
+  --bg-elevated: #232730;
+  --bg-hover: #2a2f3a;
+  --border: #323846;
+  --text: #e6e8eb;
+  --text-muted: #a3abb8;
+  --accent: #6aa6ff;
+  --accent-contrast: #0b1220;
+  --danger: #ff8080;
+  --success: #6fd09a;
+  --focus: #8fbfff;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --bg: #ffffff;
+  --bg-panel: #f3f4f6;
+  --bg-elevated: #ffffff;
+  --bg-hover: #e5e7eb;
+  --border: #d1d5db;
+  --text: #1a1d23;
+  --text-muted: #4b5563;
+  --accent: #1d5fd1;
+  --accent-contrast: #ffffff;
+  --danger: #b42318;
+  --success: #166534;
+  --focus: #1d5fd1;
+}
+
+:root {
+  --font-ui: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, Consolas, monospace;
+  --font-size: 13px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --radius: 6px;
+  --radius-sm: 4px;
+  --shadow: 0 8px 24px rgb(0 0 0 / 35%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-ui);
+  font-size: var(--font-size);
+  background: var(--bg);
+  color: var(--text);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}

@@ -1,6 +1,10 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
-import { router } from './router'
+import { registerBuiltinCommands } from './commands/builtin'
+import { i18n } from './i18n'
+import './styles/tokens.css'
 
-createApp(App).use(createPinia()).use(router).mount('#app')
+const app = createApp(App).use(createPinia()).use(i18n)
+registerBuiltinCommands()
+app.mount('#app')
