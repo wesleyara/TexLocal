@@ -32,19 +32,21 @@ impl Profile {
         }
     }
 
-    /// Coleções sempre incluídas (português e utilitários de binários, que trazem o latexmk).
-    pub fn extra_collections(self) -> &'static [&'static str] {
-        &["collection-langportuguese", "collection-binextra"]
-    }
-
-    /// Pacotes garantidos via `tlmgr install` após a instalação base.
+    /// Pacotes garantidos via `tlmgr install` após a instalação base (português e latexmk).
+    ///
+    /// Não vão no profile do `install-tl`: listar `collection-*` lá substitui a seleção do
+    /// esquema (o `scheme-basic` perde o LaTeX), como verificado na instalação real.
     pub fn post_install_packages(self) -> &'static [&'static str] {
-        &["latexmk"]
+        match self {
+            // O esquema completo já inclui tudo isto.
+            Self::Full => &[],
+            _ => &["collection-langportuguese", "latexmk"],
+        }
     }
 
     /// Gera o conteúdo do arquivo de profile do `install-tl` para instalação portátil em modo usuário.
     pub fn install_profile(self, tree: &Path) -> String {
-        let t = tree.to_string_lossy();
+        let t = tree.to_string_lossy().replace('\\', "/");
         let mut lines = vec![
             format!("selected_scheme {}", self.scheme()),
             format!("TEXDIR {t}"),
@@ -64,9 +66,6 @@ impl Profile {
             "tlpdbopt_install_docfiles 0".into(),
             "tlpdbopt_install_srcfiles 0".into(),
         ];
-        for c in self.extra_collections() {
-            lines.push(format!("{c} 1"));
-        }
         lines.push(String::new());
         lines.join("\n")
     }
@@ -85,15 +84,22 @@ mod tests {
     }
 
     #[test]
-    fn profile_is_portable_user_mode_with_portuguese_and_latexmk() {
+    fn profile_is_portable_user_mode_and_only_selects_the_scheme() {
         for p in Profile::ALL {
             let text = p.install_profile(Path::new("/data/texlive/2026"));
             assert!(text.contains("instopt_portable 1"));
             assert!(text.contains("instopt_adjustpath 0"));
-            assert!(text.contains("collection-langportuguese 1"));
+            // collection-* no profile substituiria a seleção do esquema.
+            assert!(!text.contains("collection-"));
             assert!(text.contains("TEXDIR /data/texlive/2026"));
             assert!(text.ends_with('\n') && !text.contains('\r'));
-            assert!(p.post_install_packages().contains(&"latexmk"));
         }
+        assert!(Profile::Minimal
+            .post_install_packages()
+            .contains(&"latexmk"));
+        assert!(Profile::Recommended
+            .post_install_packages()
+            .contains(&"collection-langportuguese"));
+        assert!(Profile::Full.post_install_packages().is_empty());
     }
 }

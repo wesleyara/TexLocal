@@ -1,29 +1,54 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useNotificationsStore } from '../stores/notifications'
 import { useSettingsStore } from '../stores/settings'
+import { useTexInstallStore } from '../stores/texInstall'
 import { useUiStore } from '../stores/ui'
-import { detectTex, distributionName, type Distribution } from '../tex/api'
+import {
+  detectTex,
+  distributionName,
+  formatBytes,
+  formatProfileSize,
+  requiredBytes,
+  texDiskInfo,
+  texProfiles,
+  type DiskInfo,
+  type Distribution,
+  type ProfileId,
+  type ProfileInfo,
+} from '../tex/api'
 
 const { t } = useI18n()
 const ui = useUiStore()
 const settings = useSettingsStore()
 const notifications = useNotificationsStore()
+const install = useTexInstallStore()
 
-type Step = 'welcome' | 'detect' | 'done'
+type Step = 'welcome' | 'detect' | 'profile' | 'location' | 'install' | 'done'
+const MANAGED = '__managed__'
+
 const step = ref<Step>('welcome')
 const detecting = ref(false)
 const found = ref<Distribution[]>([])
-const selected = ref<string | null>(null)
+const selected = ref<string>(MANAGED)
+const profiles = ref<ProfileInfo[]>([])
+const profile = ref<ProfileId>('recommended')
+const disk = ref<DiskInfo>({ path: '', freeBytes: null })
+
+const enough = (p: ProfileInfo) =>
+  disk.value.freeBytes === null || disk.value.freeBytes >= requiredBytes(p.approxSizeMb)
+const current = computed(() => profiles.value.find((p) => p.id === profile.value))
+const canInstall = computed(() => (current.value ? enough(current.value) : false))
 
 async function detect() {
   detecting.value = true
   try {
     found.value = await detectTex()
-    selected.value = found.value[0]?.binDir ?? null
+    selected.value = found.value[0]?.binDir ?? MANAGED
   } catch {
     found.value = []
+    selected.value = MANAGED
     notifications.notify('error', t('wizard.detectFailed'))
   } finally {
     detecting.value = false
@@ -33,11 +58,21 @@ async function detect() {
 watch(
   () => ui.wizardOpen,
   (open) => {
-    if (open) {
-      step.value = 'welcome'
-      found.value = []
-      selected.value = null
+    if (!open) return
+    if (install.status === 'running') {
+      step.value = 'install'
+      return
     }
+    step.value = 'welcome'
+    found.value = []
+    selected.value = MANAGED
+  },
+)
+
+watch(
+  () => install.status,
+  (s) => {
+    if (s === 'done' && ui.wizardOpen) step.value = 'done'
   },
 )
 
@@ -46,10 +81,30 @@ async function goDetect() {
   await detect()
 }
 
-async function finish() {
-  const ok = await settings.update({ texSource: 'system', texBinDir: selected.value ?? undefined })
-  if (ok) step.value = 'done'
-  else notifications.notify('error', t('settings.saveFailed'))
+async function chooseSource() {
+  if (selected.value !== MANAGED) {
+    const ok = await settings.update({ texSource: 'system', texBinDir: selected.value })
+    if (ok) step.value = 'done'
+    else notifications.notify('error', t('settings.saveFailed'))
+    return
+  }
+  const [p, d] = await Promise.all([texProfiles(), texDiskInfo()])
+  profiles.value = p
+  disk.value = d
+  if (current.value && !enough(current.value)) {
+    profile.value = p.find(enough)?.id ?? 'minimal'
+  }
+  step.value = 'profile'
+}
+
+async function startInstall() {
+  step.value = 'install'
+  await install.start(profile.value)
+}
+
+function retry() {
+  install.reset()
+  step.value = 'profile'
 }
 
 async function skip() {
@@ -60,6 +115,10 @@ async function skip() {
 function close() {
   ui.wizardOpen = false
 }
+
+const percent = computed(() =>
+  install.event?.progress == null ? null : Math.round(install.event.progress * 100),
+)
 </script>
 
 <template>
@@ -80,8 +139,8 @@ function close() {
 
       <section v-else-if="step === 'detect'" class="body">
         <p v-if="detecting">{{ t('wizard.detecting') }}</p>
-        <template v-else-if="found.length">
-          <p>{{ t('wizard.foundIntro') }}</p>
+        <template v-else>
+          <p>{{ found.length ? t('wizard.foundIntro') : t('wizard.noneFound') }}</p>
           <label v-for="d in found" :key="d.binDir" class="option">
             <input v-model="selected" type="radio" name="dist" :value="d.binDir" />
             <span>
@@ -92,18 +151,94 @@ function close() {
               <small v-if="!d.hasTlmgr" class="warn">{{ t('wizard.noTlmgr') }}</small>
             </span>
           </label>
-        </template>
-        <template v-else>
-          <p>{{ t('wizard.noneFound') }}</p>
-          <p class="muted">{{ t('wizard.managedUnavailable') }}</p>
+          <label class="option">
+            <input v-model="selected" type="radio" name="dist" :value="MANAGED" />
+            <span>
+              <strong>{{ t('wizard.installManaged') }}</strong>
+              <small>{{ t('wizard.installManagedHint') }}</small>
+            </span>
+          </label>
         </template>
         <footer>
           <button @click="skip">{{ t('wizard.skip') }}</button>
           <button :disabled="detecting" @click="detect">{{ t('wizard.detectAgain') }}</button>
-          <button class="primary" :disabled="!selected" @click="finish">
-            {{ t('wizard.useSelected') }}
+          <button class="primary" :disabled="detecting" @click="chooseSource">
+            {{ t('wizard.next') }}
           </button>
         </footer>
+      </section>
+
+      <section v-else-if="step === 'profile'" class="body">
+        <p>{{ t('wizard.profileIntro') }}</p>
+        <label v-for="p in profiles" :key="p.id" class="option" :class="{ disabled: !enough(p) }">
+          <input
+            v-model="profile"
+            type="radio"
+            name="profile"
+            :value="p.id"
+            :disabled="!enough(p)"
+          />
+          <span>
+            <strong
+              >{{ t(`wizard.profile.${p.id}.name`) }} · ~{{
+                formatProfileSize(p.approxSizeMb)
+              }}</strong
+            >
+            <small>{{ t(`wizard.profile.${p.id}.desc`) }}</small>
+            <small v-if="!enough(p)" class="warn">{{ t('wizard.noSpace') }}</small>
+          </span>
+        </label>
+        <footer>
+          <button @click="step = 'detect'">{{ t('wizard.back') }}</button>
+          <button class="primary" :disabled="!canInstall" @click="step = 'location'">
+            {{ t('wizard.next') }}
+          </button>
+        </footer>
+      </section>
+
+      <section v-else-if="step === 'location'" class="body">
+        <p>{{ t('wizard.locationIntro') }}</p>
+        <p class="path">{{ disk.path }}</p>
+        <p class="muted">
+          <span v-if="disk.freeBytes !== null">
+            {{ t('wizard.freeSpace', { free: formatBytes(disk.freeBytes) }) }} ·
+          </span>
+          <span v-if="current">
+            {{ t('wizard.requires', { need: formatBytes(requiredBytes(current.approxSizeMb)) }) }}
+          </span>
+        </p>
+        <footer>
+          <button @click="step = 'profile'">{{ t('wizard.back') }}</button>
+          <button class="primary" :disabled="!canInstall" @click="startInstall">
+            {{ t('wizard.install') }}
+          </button>
+        </footer>
+      </section>
+
+      <section v-else-if="step === 'install'" class="body">
+        <template v-if="install.status === 'error' && install.error">
+          <p class="warn" role="alert">{{ t(install.error.i18nKey) }}</p>
+          <details v-if="install.error.details">
+            <summary>{{ t('wizard.details') }}</summary>
+            <pre>{{ install.error.details }}</pre>
+          </details>
+          <footer>
+            <button @click="skip">{{ t('wizard.skip') }}</button>
+            <button class="primary" @click="retry">{{ t('wizard.retry') }}</button>
+          </footer>
+        </template>
+        <template v-else>
+          <p>{{ t(`wizard.phase.${install.event?.phase ?? 'preflight'}`) }}</p>
+          <progress :value="install.event?.progress ?? undefined" max="1" />
+          <p class="muted">
+            <span v-if="percent !== null">{{ percent }}% · </span>{{ install.event?.message }}
+          </p>
+          <p class="muted">{{ t('wizard.backgroundHint') }}</p>
+          <footer>
+            <button @click="install.cancel()">{{ t('wizard.cancel') }}</button>
+            <button class="primary" @click="close">{{ t('wizard.background') }}</button>
+          </footer>
+        </template>
       </section>
 
       <section v-else class="body">
@@ -167,6 +302,10 @@ header button {
   border-radius: var(--radius-sm);
   cursor: pointer;
 }
+.option.disabled {
+  opacity: 0.55;
+  cursor: default;
+}
 .option span {
   display: flex;
   flex-direction: column;
@@ -182,6 +321,23 @@ small {
 }
 .muted {
   color: var(--text-muted);
+}
+.path {
+  padding: var(--space-2);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  overflow-wrap: anywhere;
+}
+progress {
+  width: 100%;
+}
+pre {
+  max-height: 200px;
+  overflow: auto;
+  font-size: 11px;
+  white-space: pre-wrap;
 }
 footer {
   display: flex;

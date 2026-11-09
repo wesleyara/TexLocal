@@ -22,6 +22,9 @@ pub struct Settings {
     /// Diretório `bin` do TeX do sistema escolhido.
     #[serde(rename = "texBinDir", skip_serializing_if = "Option::is_none")]
     pub tex_bin_dir: Option<String>,
+    /// Espelho CTAN fixado pelo usuário (vazio = automático).
+    #[serde(rename = "texMirror", skip_serializing_if = "Option::is_none")]
+    pub tex_mirror: Option<String>,
 }
 
 impl Default for Settings {
@@ -32,6 +35,7 @@ impl Default for Settings {
             keybindings: BTreeMap::new(),
             tex_source: "unset".into(),
             tex_bin_dir: None,
+            tex_mirror: None,
         }
     }
 }
@@ -119,6 +123,8 @@ mod tests {
         assert_eq!(s.tex_bin_dir.as_deref(), Some("/usr/bin"));
         assert!(s.to_json().contains("texBinDir"));
         assert!(Settings::from_json(r#"{"texSource":"x"}"#).is_err());
+        let m = Settings::from_json(r#"{"texMirror":"https://m.example/tlnet"}"#).unwrap();
+        assert_eq!(m.tex_mirror.as_deref(), Some("https://m.example/tlnet"));
         assert_eq!(Settings::default().tex_source, "unset");
     }
 

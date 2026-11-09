@@ -1,17 +1,13 @@
 //! Camada de serviço sobre o `tlmgr`: operações, fila serializada, progresso e cancelamento.
 
-use std::io::{BufRead, BufReader, Read};
-use std::path::{Path, PathBuf};
-use std::process::{Child, Stdio};
+use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Mutex};
-use std::thread;
-use std::time::Duration;
+use std::sync::Mutex;
 
 use regex::Regex;
 use serde::Serialize;
 
-use crate::command;
+use crate::process;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TlmgrOp {
@@ -102,6 +98,11 @@ pub struct TlmgrError {
     pub details: String,
 }
 
+/// Detecta, no stderr, falhas que o tlmgr reporta sem alterar o código de saída.
+pub fn reports_failure(stderr: &str) -> bool {
+    stderr.contains("An error has occurred") || stderr.contains("returned an error")
+}
+
 pub fn classify_error(output: &str) -> TlmgrErrorKind {
     let o = output.to_lowercase();
     let any = |needles: &[&str]| needles.iter().any(|n| o.contains(n));
@@ -139,25 +140,6 @@ fn error(kind: TlmgrErrorKind, details: String) -> TlmgrError {
     }
 }
 
-/// Encerra o processo e seus descendentes (o tlmgr é um wrapper que dispara outros processos).
-fn kill_tree(child: &mut Child) {
-    let pid = child.id().to_string();
-    #[cfg(windows)]
-    {
-        let _ = command(Path::new("taskkill"))
-            .args(["/PID", &pid, "/T", "/F"])
-            .output();
-    }
-    #[cfg(unix)]
-    {
-        // O processo foi iniciado em um grupo próprio (ver `run`).
-        let _ = std::process::Command::new("kill")
-            .args(["-KILL", "--", &format!("-{pid}")])
-            .output();
-    }
-    let _ = child.kill();
-}
-
 pub struct Tlmgr {
     bin: PathBuf,
     usermode: bool,
@@ -186,75 +168,27 @@ impl Tlmgr {
             return Err(error(TlmgrErrorKind::Cancelled, String::new()));
         }
 
-        let mut cmd = command(&self.bin);
+        let mut cmd = process::prepare(&self.bin);
         if self.usermode {
             cmd.arg("--usermode");
         }
-        #[cfg(unix)]
-        {
-            use std::os::unix::process::CommandExt;
-            cmd.process_group(0);
-        }
-        let mut child = cmd
-            .args(op.args())
-            .stdin(Stdio::null())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .map_err(|e| error(TlmgrErrorKind::Unknown, e.to_string()))?;
-
-        let stdout = child.stdout.take().expect("stdout piped");
-        let mut stderr = child.stderr.take().expect("stderr piped");
-        let child = Arc::new(Mutex::new(child));
-        let finished = Arc::new(AtomicBool::new(false));
-
-        let err_reader = thread::spawn(move || {
-            let mut buf = String::new();
-            let _ = stderr.read_to_string(&mut buf);
-            buf
-        });
-
-        let mut out = String::new();
-        thread::scope(|scope| {
-            // Vigia o pedido de cancelamento enquanto o processo roda.
-            let child_w = Arc::clone(&child);
-            let finished_w = Arc::clone(&finished);
-            scope.spawn(move || {
-                while !finished_w.load(Ordering::SeqCst) {
-                    if cancel.load(Ordering::SeqCst) {
-                        let mut c = child_w.lock().unwrap_or_else(|e| e.into_inner());
-                        kill_tree(&mut c);
-                        return;
-                    }
-                    thread::sleep(Duration::from_millis(50));
-                }
-            });
-
-            for line in BufReader::new(stdout).lines().map_while(Result::ok) {
-                if let Some(p) = parse_progress(&line) {
-                    on_progress(p);
-                }
-                out.push_str(&line);
-                out.push('\n');
+        cmd.args(op.args());
+        let output = process::run_streaming(cmd, cancel, &mut |line| {
+            if let Some(p) = parse_progress(line) {
+                on_progress(p);
             }
-            finished.store(true, Ordering::SeqCst);
-        });
-        let cancelled = cancel.load(Ordering::SeqCst);
+        })
+        .map_err(|e| error(TlmgrErrorKind::Unknown, e.to_string()))?;
 
-        let status = child
-            .lock()
-            .unwrap_or_else(|e| e.into_inner())
-            .wait()
-            .map_err(|e| error(TlmgrErrorKind::Unknown, e.to_string()))?;
-        let err_text = err_reader.join().unwrap_or_default();
-
-        if cancelled {
-            return Err(error(TlmgrErrorKind::Cancelled, err_text));
+        if output.cancelled {
+            return Err(error(TlmgrErrorKind::Cancelled, output.stderr));
         }
-        if status.success() {
-            Ok(out)
+        // O tlmgr pode sair com código 0 mesmo após erro (ex.: pacote inexistente), então o
+        // stderr também conta.
+        if output.status.success() && !reports_failure(&output.stderr) {
+            Ok(output.stdout)
         } else {
-            let details = format!("{out}{err_text}");
+            let details = format!("{}{}", output.stdout, output.stderr);
             Err(error(classify_error(&details), details))
         }
     }
@@ -263,7 +197,9 @@ impl Tlmgr {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::time::Instant;
+    use std::sync::Arc;
+    use std::thread;
+    use std::time::{Duration, Instant};
 
     /// Cria um "tlmgr" falso (script) no diretório temporário.
     #[cfg(windows)]
@@ -327,6 +263,45 @@ mod tests {
         );
         assert_eq!(classify_error("???"), TlmgrErrorKind::Unknown);
         assert_eq!(TlmgrErrorKind::Offline.i18n_key(), "tlmgr.error.offline");
+    }
+
+    /// Saída real do tlmgr 2026 para um pacote inexistente (sai com código 0).
+    const REAL_UNKNOWN_PACKAGE_STDERR: &str =
+        "tlmgr.pl install: package pacote-xyz not present in repository.
+tlmgr.pl: action install returned an error; continuing.
+tlmgr.pl: An error has occurred. See above messages. Exiting.
+";
+
+    #[test]
+    fn detects_failure_reported_with_exit_code_zero() {
+        assert!(reports_failure(REAL_UNKNOWN_PACKAGE_STDERR));
+        assert!(!reports_failure("tlmgr.pl: nothing wrong"));
+        assert_eq!(
+            classify_error(REAL_UNKNOWN_PACKAGE_STDERR),
+            TlmgrErrorKind::PackageNotFound
+        );
+    }
+
+    #[test]
+    fn success_exit_with_error_on_stderr_is_still_an_error() {
+        let tmp = tempfile::tempdir().unwrap();
+        let bin = fake_tlmgr(
+            tmp.path(),
+            "echo 'tlmgr.pl install: package x not present in repository.' >&2
+echo 'tlmgr.pl: An error has occurred. See above messages. Exiting.' >&2
+exit 0",
+            "echo tlmgr.pl install: package x not present in repository. 1>&2
+echo tlmgr.pl: An error has occurred. See above messages. Exiting. 1>&2
+exit /b 0",
+        );
+        let err = Tlmgr::new(bin, false)
+            .run(
+                &TlmgrOp::Install(vec!["x".into()]),
+                &AtomicBool::new(false),
+                &mut |_| {},
+            )
+            .unwrap_err();
+        assert_eq!(err.kind, TlmgrErrorKind::PackageNotFound);
     }
 
     #[test]

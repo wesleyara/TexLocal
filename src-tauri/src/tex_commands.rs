@@ -1,9 +1,13 @@
 //! Comandos Tauri do gerenciador TeX (EP02).
 
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
 use serde::Serialize;
+use tauri::{AppHandle, Emitter, State};
 use texlocal_tex::detect::{self, Distribution};
+use texlocal_tex::installer::{InstallError, InstallErrorKind, InstallResult, Installer};
 use texlocal_tex::manifest::{self, Manifest};
 use texlocal_tex::profile::Profile;
 use texlocal_tex::{disk, paths};
@@ -88,4 +92,52 @@ pub async fn project_manifest(dir: String) -> Result<Manifest, String> {
 #[tauri::command]
 pub async fn save_project_manifest(dir: String, manifest: Manifest) -> Result<(), String> {
     blocking(move || manifest::write(&PathBuf::from(dir), &manifest)).await
+}
+
+/// Estado da instalação gerenciada (no máximo uma por vez).
+#[derive(Default)]
+pub struct InstallState {
+    cancel: Arc<AtomicBool>,
+    running: AtomicBool,
+}
+
+/// Instala o TeX Live gerenciado, emitindo o evento `tex-install` com o progresso.
+#[tauri::command]
+pub async fn tex_install(
+    app: AppHandle,
+    state: State<'_, InstallState>,
+    profile: Profile,
+    mirror: Option<String>,
+) -> Result<InstallResult, InstallError> {
+    if state.running.swap(true, Ordering::SeqCst) {
+        return Err(InstallError::new(
+            InstallErrorKind::InstallFailed,
+            "instalação já em andamento",
+        ));
+    }
+    state.cancel.store(false, Ordering::SeqCst);
+    let cancel = Arc::clone(&state.cancel);
+
+    let outcome = tauri::async_runtime::spawn_blocking(move || {
+        let root = paths::data_root().ok_or_else(|| {
+            InstallError::new(InstallErrorKind::Io, "diretório de dados indisponível")
+        })?;
+        let mirror = mirror.filter(|m| !m.trim().is_empty());
+        Installer::new(root, mirror).install(profile, &cancel, &mut |event| {
+            let _ = app.emit("tex-install", event);
+        })
+    })
+    .await;
+    state.running.store(false, Ordering::SeqCst);
+    outcome.unwrap_or_else(|e| {
+        Err(InstallError::new(
+            InstallErrorKind::InstallFailed,
+            e.to_string(),
+        ))
+    })
+}
+
+#[tauri::command]
+pub fn tex_install_cancel(state: State<'_, InstallState>) {
+    state.cancel.store(true, Ordering::SeqCst);
 }

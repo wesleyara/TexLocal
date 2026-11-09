@@ -200,6 +200,23 @@ other:
         assert!(parse_search_output(out, "nada.sty").is_empty());
     }
 
+    /// Saída real do tlmgr (TeX Live 2026, Windows) para `search --global --file siunitx.sty`.
+    #[test]
+    fn resolves_package_from_real_tlmgr_output() {
+        let real = "tlmgr.pl: package repository https://br.mirrors.cicku.me/ctan/systems/texlive/tlnet (not verified: gpg unavailable)
+luatexja:
+	texmf-dist/tex/luatex/luatexja/patches/lltjp-siunitx.sty
+lwarp:
+	texmf-dist/tex/latex/lwarp/lwarp-siunitx.sty
+plautopatch:
+	texmf-dist/tex/latex/plautopatch/plsiunitx.sty
+siunitx:
+	texmf-dist/tex/latex/siunitx/siunitx.sty
+";
+        assert_eq!(parse_search_output(real, "siunitx.sty"), vec!["siunitx"]);
+        assert!(parse_search_output(real, "lltjp.sty").is_empty());
+    }
+
     #[test]
     fn index_roundtrips() {
         let mut idx = PackageIndex::default();

@@ -11,6 +11,8 @@ export interface Settings {
   texSource: TexSource
   /** Diretório bin do TeX do sistema escolhido. */
   texBinDir?: string
+  /** Espelho CTAN fixado (vazio = automático). */
+  texMirror?: string
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -30,7 +32,7 @@ export function validateSettings(value: unknown): Settings {
     throw new Error('settings deve ser um objeto')
   }
   const v = value as Record<string, unknown>
-  const known = new Set([...Object.keys(DEFAULT_SETTINGS), 'texBinDir'])
+  const known = new Set([...Object.keys(DEFAULT_SETTINGS), 'texBinDir', 'texMirror'])
   for (const k of Object.keys(v)) {
     if (!known.has(k)) throw new Error(`chave desconhecida: ${k}`)
   }
@@ -47,6 +49,9 @@ export function validateSettings(value: unknown): Settings {
   if (v.texBinDir !== undefined && typeof v.texBinDir !== 'string') {
     throw new Error('texBinDir deve ser texto')
   }
+  if (v.texMirror !== undefined && typeof v.texMirror !== 'string') {
+    throw new Error('texMirror deve ser texto')
+  }
   const kb = v.keybindings ?? {}
   if (typeof kb !== 'object' || kb === null || Array.isArray(kb)) {
     throw new Error('keybindings deve ser um objeto')
@@ -60,6 +65,7 @@ export function validateSettings(value: unknown): Settings {
     keybindings: { ...(kb as Record<string, string>) },
     texSource: texSource as TexSource,
     ...(v.texBinDir !== undefined ? { texBinDir: v.texBinDir as string } : {}),
+    ...(v.texMirror !== undefined ? { texMirror: v.texMirror as string } : {}),
   }
 }
 

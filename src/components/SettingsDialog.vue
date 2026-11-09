@@ -147,6 +147,19 @@ function close() {
           </select>
         </label>
 
+        <label class="row">
+          <span>
+            {{ t('settings.texMirror') }}
+            <small class="hint">{{ t('settings.texMirrorHint') }}</small>
+          </span>
+          <input
+            type="url"
+            class="mirror"
+            :value="settings.effective.texMirror ?? ''"
+            placeholder="https://mirror.ctan.org/systems/texlive/tlnet"
+            @change="save({ texMirror: ($event.target as HTMLInputElement).value.trim() })"
+          />
+        </label>
         <button class="row-btn" @click="ui.wizardOpen = true">{{ t('settings.texWizard') }}</button>
 
         <h2>{{ t('settings.shortcuts') }}</h2>
@@ -272,6 +285,18 @@ kbd {
 .conflict {
   flex-basis: 100%;
   color: var(--danger);
+}
+.hint {
+  display: block;
+  color: var(--text-muted);
+}
+.mirror {
+  width: 55%;
+  padding: 4px var(--space-2);
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
 }
 .link {
   margin-top: var(--space-3);

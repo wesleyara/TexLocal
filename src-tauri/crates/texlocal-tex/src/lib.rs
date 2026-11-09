@@ -2,9 +2,11 @@
 
 pub mod detect;
 pub mod disk;
+pub mod installer;
 pub mod logparse;
 pub mod manifest;
 pub mod paths;
+pub mod process;
 pub mod profile;
 pub mod reconcile;
 pub mod tlmgr;

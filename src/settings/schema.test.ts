@@ -12,6 +12,7 @@ describe('validateSettings', () => {
     expect(() => validateSettings({ keybindings: { a: 1 } })).toThrow(/keybindings/)
     expect(() => validateSettings({ texSource: 'x' })).toThrow(/texSource/)
     expect(() => validateSettings({ texBinDir: 1 })).toThrow(/texBinDir/)
+    expect(() => validateSettings({ texMirror: 1 })).toThrow(/texMirror/)
     expect(() => validateSettings([])).toThrow()
   })
 })

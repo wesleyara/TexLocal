@@ -86,7 +86,9 @@
     "jsonInvalid": "JSON inválido: {error}",
     "saved": "Configurações salvas.",
     "saveFailed": "Não foi possível salvar as configurações.",
-    "texWizard": "Configurar o TeX…"
+    "texWizard": "Configurar o TeX…",
+    "texMirror": "Espelho CTAN (opcional)",
+    "texMirrorHint": "URL do espelho tlnet; vazio usa o automático."
   },
   "notify": {
     "center": "Central de notificações",
@@ -105,14 +107,51 @@
     "detecting": "Procurando distribuições TeX…",
     "foundIntro": "Encontramos estas distribuições. Escolha qual usar:",
     "noneFound": "Nenhuma distribuição TeX foi encontrada.",
-    "managedUnavailable": "A instalação gerenciada do TeX Live ainda não está disponível nesta versão. Instale o TeX Live, MiKTeX ou MacTeX e clique em Procurar novamente.",
     "detectAgain": "Procurar novamente",
     "detectFailed": "Não foi possível procurar distribuições TeX.",
     "useSelected": "Usar a selecionada",
     "noLatexmk": "latexmk não encontrado: a compilação automática precisará dele.",
     "noTlmgr": "Sem gerenciador de pacotes: pacotes faltantes não serão instalados automaticamente.",
     "done": "Tudo pronto! Você pode reabrir este assistente em Configurações.",
-    "close": "Fechar"
+    "close": "Fechar",
+    "installManaged": "Instalar o TeX Live gerenciado pelo TexLocal (recomendado)",
+    "installManagedHint": "Instala no seu perfil de usuário, sem precisar de administrador.",
+    "next": "Continuar",
+    "back": "Voltar",
+    "profileIntro": "Escolha o tamanho da instalação. Você pode instalar pacotes extras depois.",
+    "profile": {
+      "minimal": {
+        "name": "Mínimo",
+        "desc": "LaTeX básico; pacotes faltantes são baixados sob demanda."
+      },
+      "recommended": {
+        "name": "Recomendado",
+        "desc": "Cobre a maioria dos artigos, teses e apresentações."
+      },
+      "full": {
+        "name": "Completo",
+        "desc": "Tudo do TeX Live; funciona bem offline."
+      }
+    },
+    "noSpace": "Espaço em disco insuficiente.",
+    "locationIntro": "O TeX Live será instalado neste local (dentro do seu perfil, sem administrador):",
+    "freeSpace": "Espaço livre: {free}",
+    "requires": "Necessário: {need}",
+    "install": "Instalar",
+    "installing": "Instalando",
+    "cancel": "Cancelar",
+    "retry": "Tentar de novo",
+    "background": "Continuar em segundo plano",
+    "backgroundHint": "Você pode usar o editor enquanto a instalação continua.",
+    "details": "Detalhes técnicos",
+    "phase": {
+      "preflight": "Preparando…",
+      "download": "Baixando o instalador…",
+      "verify": "Verificando integridade…",
+      "extract": "Extraindo…",
+      "install": "Instalando o TeX Live…",
+      "finalize": "Finalizando…"
+    }
   },
   "tlmgr": {
     "error": {
@@ -121,6 +160,21 @@
       "permissionDenied": "Sem permissão para gravar na instalação do TeX.",
       "cancelled": "Operação cancelada.",
       "unknown": "O gerenciador de pacotes falhou. Veja o log para detalhes."
+    }
+  },
+  "installer": {
+    "task": "Instalando o TeX Live",
+    "done": "TeX Live {year} instalado.",
+    "error": {
+      "network": "Falha de rede ao baixar o TeX Live. Verifique sua conexão e tente de novo.",
+      "checksum": "O arquivo baixado está corrompido (checksum inválido). Tente de novo.",
+      "extract": "Não foi possível extrair o instalador.",
+      "installFailed": "A instalação do TeX Live falhou. Veja os detalhes técnicos.",
+      "cancelled": "Instalação cancelada.",
+      "diskSpace": "Espaço em disco insuficiente para este perfil.",
+      "alreadyInstalled": "Esta versão do TeX Live já está instalada.",
+      "io": "Erro ao acessar arquivos no disco.",
+      "unavailable": "A instalação só está disponível no aplicativo desktop."
     }
   }
 }
