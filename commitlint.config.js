@@ -1,0 +1,30 @@
+export default {
+  extends: ['@commitlint/config-conventional'],
+  rules: {
+    'scope-enum': [
+      2,
+      'always',
+      [
+        'editor',
+        'tex',
+        'git',
+        'compile',
+        'preview',
+        'snippets',
+        'history',
+        'projects',
+        'templates',
+        'bib',
+        'ui',
+        'i18n',
+        'settings',
+        'ci',
+        'release',
+        'deps',
+        'docs',
+        'core',
+      ],
+    ],
+    'subject-case': [0],
+  },
+}

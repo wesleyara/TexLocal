@@ -1,0 +1,30 @@
+name: Bug
+description: Reportar um problema
+labels: [bug]
+body:
+  - type: dropdown
+    id: os
+    attributes:
+      label: Sistema operacional
+      options: [Linux, Windows, macOS]
+    validations: { required: true }
+  - type: input
+    id: version
+    attributes:
+      label: Versão do TexLocal
+    validations: { required: true }
+  - type: textarea
+    id: steps
+    attributes:
+      label: Passos para reproduzir
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes:
+      label: Resultado esperado x obtido
+    validations: { required: true }
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      render: text

@@ -1,0 +1,13 @@
+name: Feature
+description: Sugerir uma funcionalidade
+labels: [enhancement]
+body:
+  - type: textarea
+    id: story
+    attributes:
+      label: Como (persona) quero (capacidade) para (benefício)
+    validations: { required: true }
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critérios de aceite

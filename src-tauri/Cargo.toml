@@ -1,0 +1,36 @@
+[workspace]
+members = [".", "crates/texlocal-core", "crates/texlocal-git", "crates/texlocal-tex"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+authors = ["TexLocal contributors"]
+repository = "https://github.com/wesleyara/TexLocal"
+rust-version = "1.89"
+
+[package]
+name = "texlocal"
+description = "Editor LaTeX local, multiplataforma e autossuficiente"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[lib]
+name = "texlocal_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+texlocal-core = { path = "crates/texlocal-core" }
+texlocal-git = { path = "crates/texlocal-git" }
+texlocal-tex = { path = "crates/texlocal-tex" }

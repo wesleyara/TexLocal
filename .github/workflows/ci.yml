@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lf:
+    name: Fim de linha (LF)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: node scripts/check-lf.mjs
+
+  commits:
+    name: Conventional Commits
+    runs-on: ubuntu-22.04
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Título do PR (squash merge)
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: printf '%s\n' "$PR_TITLE" | pnpm exec commitlint
+      - name: Commits do PR
+        run: pnpm exec commitlint --from "${{ github.event.pull_request.base.sha }}" --to "${{ github.event.pull_request.head.sha }}"
+
+  check:
+    name: ${{ matrix.name }}
+    needs: lf
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: Linux x64, os: ubuntu-22.04 }
+          - { name: Windows x64, os: windows-latest }
+          - { name: macOS arm64, os: macos-latest }
+          - { name: macOS x64, os: macos-13 }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.89.0
+          components: rustfmt, clippy
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - name: Dependências do Tauri (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libgtk-3-dev libssl-dev
+      - run: pnpm install --frozen-lockfile
+      - name: Lint, formatação e tipos (frontend)
+        run: |
+          pnpm lint
+          pnpm format:check
+          pnpm typecheck
+      - run: pnpm test
+      - name: Lint e formatação (Rust)
+        run: |
+          cargo fmt --manifest-path src-tauri/Cargo.toml --all --check
+          cargo clippy --manifest-path src-tauri/Cargo.toml --workspace --all-targets -- -D warnings
+      - run: cargo test --manifest-path src-tauri/Cargo.toml --workspace
+      - name: Build Tauri de verificação
+        run: pnpm tauri build --no-bundle
