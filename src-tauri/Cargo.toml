@@ -8,7 +8,7 @@ edition = "2021"
 license = "MIT"
 authors = ["TexLocal contributors"]
 repository = "https://github.com/wesleyara/TexLocal"
-rust-version = "1.89"
+rust-version = "1.90"
 
 [package]
 name = "texlocal"
