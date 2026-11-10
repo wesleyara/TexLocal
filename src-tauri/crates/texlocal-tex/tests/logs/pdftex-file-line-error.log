@@ -1,0 +1,72 @@
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.5.1)  1 JUN 2024 10:00
+entering extended mode
+ restricted \write18 enabled.
+ %&-line parsing enabled.
+**main.tex
+(./main.tex
+LaTeX2e <2023-11-01> patch level 1
+L3 programming layer <2024-02-20>
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2023/05/17 v1.4n Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size10.clo))
+(/usr/share/texlive/texmf-dist/tex/latex/hyperref/hyperref.sty)
+./main.tex:8: Undefined control sequence.
+l.8 \foo
+        bar
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./main.tex:10: LaTeX Error: File `nonexistent.sty' not found.
+
+Type X to quit or <RETURN> to proceed,
+or enter new name. (Default extension: sty)
+
+Enter file name: 
+./main.tex:10: Emergency stop is not used here, continuing.
+
+LaTeX Warning: Reference `fig:missing' on page 1 undefined on input line 12.
+
+LaTeX Warning: Citation `knuth84' on page 1 undefined on input line 14.
+
+(./chapters/intro.tex
+./chapters/intro.tex:3: LaTeX Error: Environment foo undefined.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.3 \begin{foo}
+               
+LaTeX Warning: Reference `sec:later' on page 1 undefined on input line 5.
+
+)
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `math shift' on input line 18.
+
+
+Overfull \hbox (12.5pt too wide) in paragraph at lines 20--20
+[]\OT1/cmr/m/n/10 A very long line that does not fit in the measure
+ []
+
+(/usr/share/texlive/texmf-dist/tex/latex/base/ot1cmr.fd
+LaTeX Font Warning: Font shape `OT1/cmr/m/n' in size <3.5> not available
+(Font)              size <5> substituted on input line 25.
+)
+
+LaTeX Warning: Citation `very-long-bibliography-key-from-a-large-database-2024'
+ on page 1 undefined on input line 22.
+
+Underfull \hbox (badness 10000) in paragraph at lines 31--31
+[]\OT1/cmr/m/n/10 Short text
+ []
+
+[1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
+(./main.aux)
+
+LaTeX Warning: There were undefined references.
+
+ )
+Output written on main.pdf (1 page, 1000 bytes).

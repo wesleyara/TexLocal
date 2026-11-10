@@ -3,5 +3,6 @@ dist/
 target/
 src-tauri/gen/
 *.log
+!src-tauri/crates/texlocal-tex/tests/logs/*.log
 .DS_Store
 coverage/

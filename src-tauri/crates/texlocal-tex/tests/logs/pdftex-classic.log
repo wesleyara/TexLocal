@@ -1,0 +1,24 @@
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.5.1)  1 JUN 2024 10:00
+entering extended mode
+**main.tex
+(./main.tex
+LaTeX2e <2023-11-01> patch level 1
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2023/05/17 v1.4n Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size10.clo))
+(./chapters/math.tex
+! Missing $ inserted.
+<inserted text> 
+                $
+l.7 x^2 + y_
+            1 = z
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+)
+! Emergency stop.
+<*> main.tex
+            
+*** (job aborted, no legal \end found)
+
+No pages of output.

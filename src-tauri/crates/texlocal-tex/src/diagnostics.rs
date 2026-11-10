@@ -163,12 +163,21 @@ static EXTENSION: LazyLock<Regex> = LazyLock::new(|| re(r"\.[A-Za-z0-9]{1,5}$"))
 /// continuam na linha seguinte.
 const PRINT_LINE: usize = 79;
 
+/// Início de uma mensagem nova (`! erro`, `arquivo:12: erro`, `l.12 ...`): nunca é continuação.
+static NEW_MESSAGE: LazyLock<Regex> =
+    LazyLock::new(|| re(r"^(?:! |l\.\d+ |(?:[A-Za-z]:)?[^\s:]+:\d+: )"));
+
 /// Junta as linhas que o TeX quebrou em 79 colunas.
 fn unwrap_lines(log: &str) -> Vec<String> {
     let mut out = Vec::new();
     let mut pending = String::new();
     for raw in log.lines() {
         let line = raw.trim_end_matches('\r');
+        // Uma linha que por acaso tem 79 colunas (ex.: estatísticas de memória do pdfTeX) não
+        // pode engolir a mensagem seguinte.
+        if !pending.is_empty() && NEW_MESSAGE.is_match(line) {
+            out.push(std::mem::take(&mut pending));
+        }
         pending.push_str(line);
         if line.chars().count() == PRINT_LINE {
             continue;
@@ -650,6 +659,30 @@ mod tests {
         let fatal = find(&d, "Emergency stop");
         assert_eq!(fatal.file.as_deref(), Some("main.tex"));
         assert_eq!(fatal.explanation, Some("emergencyStop"));
+    }
+
+    #[test]
+    fn memory_stats_line_of_79_columns_does_not_swallow_the_next_error() {
+        let stats =
+            " 19i,0n,29p,101b,17s stack positions out of 10000i,1000n,20000p,200000b,200000s";
+        assert_eq!(stats.chars().count(), PRINT_LINE);
+        let log = format!(
+            "(./src/artigo.tex
+./src/artigo.tex:46: LaTeX Error: File `abntex2.cls' not found.
+
+{stats}
+./src/artigo.tex:46: Emergency stop.
+l.46 ^^M
+
+!  ==> Fatal error occurred, no output PDF file produced!
+"
+        );
+        let d = parse_latex_log(&log);
+        assert!(d.iter().all(|x| x.file.as_deref() != Some("19i")));
+        assert!(d
+            .iter()
+            .all(|x| x.file.as_deref().is_none_or(|f| f == "src/artigo.tex")));
+        assert!(d.iter().any(|x| x.message.contains("Emergency stop")));
     }
 
     #[test]
