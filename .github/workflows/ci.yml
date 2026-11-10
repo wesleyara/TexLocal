@@ -21,7 +21,7 @@ jobs:
       - run: node scripts/check-lf.mjs
 
   commits:
-    name: Conventional Commits
+    name: Conventional Commits (commits)
     runs-on: ubuntu-22.04
     if: github.event_name == 'pull_request'
     steps:
@@ -34,10 +34,7 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - name: Título do PR (squash merge)
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
-        run: printf '%s\n' "$PR_TITLE" | pnpm exec commitlint
+      # O título do PR é validado em pr-title.yml (que também roda ao editar o título).
       - name: Commits do PR
         run: pnpm exec commitlint --from "${{ github.event.pull_request.base.sha }}" --to "${{ github.event.pull_request.head.sha }}"
 
@@ -51,7 +48,7 @@ jobs:
           - { name: Linux x64, os: ubuntu-22.04 }
           - { name: Windows x64, os: windows-latest }
           - { name: macOS arm64, os: macos-latest }
-          - { name: macOS x64, os: macos-13 }
+          - { name: macOS x64, os: macos-15-intel }
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     steps:

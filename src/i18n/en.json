@@ -1,6 +1,12 @@
 {
-  "app": { "name": "TexLocal" },
-  "menu": { "file": "File", "view": "View", "help": "Help" },
+  "app": {
+    "name": "TexLocal"
+  },
+  "menu": {
+    "file": "File",
+    "view": "View",
+    "help": "Help"
+  },
   "activity": {
     "files": "Files",
     "search": "Search",
@@ -8,10 +14,23 @@
     "git": "Git",
     "settings": "Settings"
   },
-  "sidebar": { "files": "Files", "empty": "No project open." },
-  "editor": { "title": "Editor", "placeholder": "Open a folder to start writing." },
-  "pdf": { "title": "PDF", "placeholder": "The compiled PDF will appear here." },
-  "bottom": { "problems": "Problems", "log": "Log", "noProblems": "No problems." },
+  "sidebar": {
+    "files": "Files",
+    "empty": "No project open."
+  },
+  "editor": {
+    "title": "Editor",
+    "placeholder": "Open a folder to start writing."
+  },
+  "pdf": {
+    "title": "PDF",
+    "placeholder": "The compiled PDF will appear here."
+  },
+  "bottom": {
+    "problems": "Problems",
+    "log": "Log",
+    "noProblems": "No problems."
+  },
   "layout": {
     "sidebarResize": "Resize sidebar",
     "pdfResize": "Resize PDF panel",
@@ -44,7 +63,8 @@
     "modeEditor": "Layout: editor only",
     "modePdf": "Layout: PDF only",
     "openSettings": "Open settings",
-    "toggleTheme": "Toggle light/dark theme"
+    "toggleTheme": "Toggle light/dark theme",
+    "openTexWizard": "Set up TeX…"
   },
   "settings": {
     "title": "Settings",
@@ -65,7 +85,10 @@
     "jsonApply": "Apply",
     "jsonInvalid": "Invalid JSON: {error}",
     "saved": "Settings saved.",
-    "saveFailed": "Could not save settings."
+    "saveFailed": "Could not save settings.",
+    "texWizard": "Set up TeX…",
+    "texMirror": "CTAN mirror (optional)",
+    "texMirrorHint": "tlnet mirror URL; empty uses the automatic one."
   },
   "notify": {
     "center": "Notification center",
@@ -75,5 +98,83 @@
     "cancel": "Cancel",
     "dismiss": "Dismiss",
     "clear": "Clear"
+  },
+  "wizard": {
+    "title": "TeX setup",
+    "welcome": "TexLocal needs a TeX distribution to build your documents. Let’s look for one already installed on this computer.",
+    "start": "Look for TeX",
+    "skip": "Skip for now",
+    "detecting": "Looking for TeX distributions…",
+    "foundIntro": "We found these distributions. Choose which one to use:",
+    "noneFound": "No TeX distribution was found.",
+    "detectAgain": "Look again",
+    "detectFailed": "Could not look for TeX distributions.",
+    "useSelected": "Use selected",
+    "noLatexmk": "latexmk not found: automatic builds will need it.",
+    "noTlmgr": "No package manager: missing packages will not be installed automatically.",
+    "done": "All set! You can reopen this wizard in Settings.",
+    "close": "Close",
+    "installManaged": "Install the TeX Live managed by TexLocal (recommended)",
+    "installManagedHint": "Installs in your user profile, no administrator needed.",
+    "next": "Continue",
+    "back": "Back",
+    "profileIntro": "Choose the install size. You can add more packages later.",
+    "profile": {
+      "minimal": {
+        "name": "Minimal",
+        "desc": "Basic LaTeX; missing packages are downloaded on demand."
+      },
+      "recommended": {
+        "name": "Recommended",
+        "desc": "Covers most papers, theses and presentations."
+      },
+      "full": {
+        "name": "Full",
+        "desc": "Everything in TeX Live; works well offline."
+      }
+    },
+    "noSpace": "Not enough disk space.",
+    "locationIntro": "TeX Live will be installed here (inside your profile, no administrator):",
+    "freeSpace": "Free space: {free}",
+    "requires": "Required: {need}",
+    "install": "Install",
+    "installing": "Installing",
+    "cancel": "Cancel",
+    "retry": "Try again",
+    "background": "Continue in background",
+    "backgroundHint": "You can use the editor while the install continues.",
+    "details": "Technical details",
+    "phase": {
+      "preflight": "Preparing…",
+      "download": "Downloading the installer…",
+      "verify": "Verifying integrity…",
+      "extract": "Extracting…",
+      "install": "Installing TeX Live…",
+      "finalize": "Finishing…"
+    }
+  },
+  "tlmgr": {
+    "error": {
+      "offline": "Cannot reach the package repository. Check your internet; the install will be retried when you are online.",
+      "packageNotFound": "The package was not found in the repository.",
+      "permissionDenied": "No permission to write to the TeX installation.",
+      "cancelled": "Operation cancelled.",
+      "unknown": "The package manager failed. See the log for details."
+    }
+  },
+  "installer": {
+    "task": "Installing TeX Live",
+    "done": "TeX Live {year} installed.",
+    "error": {
+      "network": "Network error while downloading TeX Live. Check your connection and try again.",
+      "checksum": "The downloaded file is corrupted (invalid checksum). Try again.",
+      "extract": "Could not extract the installer.",
+      "installFailed": "The TeX Live install failed. See the technical details.",
+      "cancelled": "Install cancelled.",
+      "diskSpace": "Not enough disk space for this profile.",
+      "alreadyInstalled": "This TeX Live version is already installed.",
+      "io": "Error accessing files on disk.",
+      "unavailable": "Installing is only available in the desktop app."
+    }
   }
 }

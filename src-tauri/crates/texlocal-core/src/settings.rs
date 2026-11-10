@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 
 const THEMES: [&str; 3] = ["system", "dark", "light"];
 const LOCALES: [&str; 3] = ["auto", "pt-BR", "en"];
+const TEX_SOURCES: [&str; 4] = ["unset", "system", "managed", "skipped"];
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
@@ -15,6 +16,15 @@ pub struct Settings {
     pub locale: String,
     /// Overrides de atalhos: id do comando -> binding.
     pub keybindings: BTreeMap<String, String>,
+    /// Origem do TeX: `unset` (assistente pendente), `system`, `managed` ou `skipped`.
+    #[serde(rename = "texSource")]
+    pub tex_source: String,
+    /// Diretório `bin` do TeX do sistema escolhido.
+    #[serde(rename = "texBinDir", skip_serializing_if = "Option::is_none")]
+    pub tex_bin_dir: Option<String>,
+    /// Espelho CTAN fixado pelo usuário (vazio = automático).
+    #[serde(rename = "texMirror", skip_serializing_if = "Option::is_none")]
+    pub tex_mirror: Option<String>,
 }
 
 impl Default for Settings {
@@ -23,6 +33,9 @@ impl Default for Settings {
             theme: "dark".into(),
             locale: "auto".into(),
             keybindings: BTreeMap::new(),
+            tex_source: "unset".into(),
+            tex_bin_dir: None,
+            tex_mirror: None,
         }
     }
 }
@@ -60,6 +73,12 @@ impl Settings {
                 value: self.locale.clone(),
             });
         }
+        if !TEX_SOURCES.contains(&self.tex_source.as_str()) {
+            return Err(SettingsError::InvalidValue {
+                field: "texSource",
+                value: self.tex_source.clone(),
+            });
+        }
         Ok(())
     }
 
@@ -94,6 +113,19 @@ mod tests {
             err,
             SettingsError::InvalidValue { field: "theme", .. }
         ));
+    }
+
+    #[test]
+    fn tex_fields_roundtrip_with_camel_case_names() {
+        let json = r#"{"texSource":"system","texBinDir":"/usr/bin"}"#;
+        let s = Settings::from_json(json).unwrap();
+        assert_eq!(s.tex_source, "system");
+        assert_eq!(s.tex_bin_dir.as_deref(), Some("/usr/bin"));
+        assert!(s.to_json().contains("texBinDir"));
+        assert!(Settings::from_json(r#"{"texSource":"x"}"#).is_err());
+        let m = Settings::from_json(r#"{"texMirror":"https://m.example/tlnet"}"#).unwrap();
+        assert_eq!(m.tex_mirror.as_deref(), Some("https://m.example/tlnet"));
+        assert_eq!(Settings::default().tex_source, "unset");
     }
 
     #[test]
