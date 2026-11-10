@@ -295,19 +295,145 @@ async function renderPage(n: number) {
   }
 }
 
+interface LinkBox {
+  left: number
+  top: number
+  right: number
+  bottom: number
+  key: string
+  annotation: LinkAnnotation
+  /** Fragmentos da mesma citação (quebrada em linhas) compartilham o grupo. */
+  group?: number
+}
+
+interface TextBox {
+  left: number
+  right: number
+  top: number
+  bottom: number
+}
+
+/** Caixas (em pixels da viewport) dos trechos de texto da página. */
+async function textBoxes(
+  page: PDFPageProxy,
+  viewport: ReturnType<PDFPageProxy['getViewport']>,
+): Promise<TextBox[]> {
+  const content = await page.getTextContent()
+  const out: TextBox[] = []
+  for (const item of content.items) {
+    if (!('str' in item) || !item.str.trim()) continue
+    const [, , , , e, f] = item.transform as number[]
+    const [x1, y1] = viewport.convertToViewportPoint(e, f)
+    const [x2] = viewport.convertToViewportPoint(e + item.width, f)
+    const h = item.height * viewport.scale
+    out.push({
+      left: Math.min(x1, x2),
+      right: Math.max(x1, x2),
+      top: y1 - h,
+      bottom: y1 + h * 0.25,
+    })
+  }
+  return out
+}
+
+/**
+ * O pdfTeX registra o trecho de um link que foi quebrado de linha com a largura da caixa da
+ * linha, que pode sobrar para a esquerda do texto. Corta a área ao texto que ela realmente cobre.
+ */
+function clipToText(box: LinkBox, texts: TextBox[]): void {
+  let left = Infinity
+  let right = -Infinity
+  const mid = (box.top + box.bottom) / 2
+  for (const t of texts) {
+    if (mid < t.top || mid > t.bottom) continue
+    if (t.right < box.left || t.left > box.right) continue
+    left = Math.min(left, t.left)
+    right = Math.max(right, t.right)
+  }
+  if (left === Infinity) return
+  box.left = Math.max(box.left, left)
+  box.right = Math.min(box.right, right)
+}
+
+function assignGroups(boxes: LinkBox[]): void {
+  let group = 0
+  let prev: LinkBox | undefined
+  for (const box of boxes) {
+    const height = box.bottom - box.top
+    const continues =
+      prev && prev.key === box.key && box.top >= prev.top && box.top - prev.bottom <= height * 2
+    if (!continues) group++
+    box.group = group
+    prev = box
+  }
+}
+
+/**
+ * Citações como "(POLYA, 2006)" saem do LaTeX como vários links colados (autor e ano), todos
+ * para a mesma referência. Junta os vizinhos da mesma linha e mesmo destino em uma só área,
+ * para o realce e o clique cobrirem a citação inteira.
+ */
+function mergeLinkBoxes(boxes: LinkBox[]): LinkBox[] {
+  const merged: LinkBox[] = []
+  for (const box of boxes) {
+    const prev = merged[merged.length - 1]
+    const height = box.bottom - box.top
+    if (
+      prev &&
+      prev.key === box.key &&
+      // mesma linha: as faixas verticais se sobrepõem quase por completo
+      Math.min(prev.bottom, box.bottom) - Math.max(prev.top, box.top) > height * 0.6 &&
+      // vizinhos: o vão (", ") cabe em ~1,5 altura de linha
+      box.left - prev.right >= -2 &&
+      box.left - prev.right <= height * 1.5
+    ) {
+      prev.right = Math.max(prev.right, box.right)
+      prev.top = Math.min(prev.top, box.top)
+      prev.bottom = Math.max(prev.bottom, box.bottom)
+    } else {
+      merged.push({ ...box })
+    }
+  }
+  return merged
+}
+
 async function buildLinks(page: PDFPageProxy, viewport: ReturnType<PDFPageProxy['getViewport']>) {
   const layer = document.createElement('div')
   layer.className = 'linkLayer'
   const annotations = (await page.getAnnotations({ intent: 'display' })) as LinkAnnotation[]
+  const boxes: LinkBox[] = []
   for (const a of annotations) {
     if (a.subtype !== 'Link' || !a.rect || !(a.dest || a.url || a.unsafeUrl)) continue
     const [x1, y1, x2, y2] = viewport.convertToViewportRectangle(a.rect as number[])
+    boxes.push({
+      left: Math.min(x1, x2),
+      top: Math.min(y1, y2),
+      right: Math.max(x1, x2),
+      bottom: Math.max(y1, y2),
+      key: JSON.stringify(a.dest ?? a.url ?? a.unsafeUrl),
+      annotation: a,
+    })
+  }
+  const texts = await textBoxes(page, viewport)
+  const merged = mergeLinkBoxes(boxes)
+  for (const box of merged) clipToText(box, texts)
+  assignGroups(merged)
+  for (const box of merged) {
+    const a = box.annotation
     const link = document.createElement('a')
     link.href = '#'
-    link.style.left = `${Math.min(x1, x2)}px`
-    link.style.top = `${Math.min(y1, y2)}px`
-    link.style.width = `${Math.abs(x2 - x1)}px`
-    link.style.height = `${Math.abs(y2 - y1)}px`
+    link.dataset.group = String(box.group)
+    // Citação quebrada em duas linhas: o realce acompanha todos os fragmentos.
+    const setHover = (on: boolean) =>
+      layer
+        .querySelectorAll(`a[data-group="${box.group}"]`)
+        .forEach((el) => el.classList.toggle('hover', on))
+    link.addEventListener('mouseenter', () => setHover(true))
+    link.addEventListener('mouseleave', () => setHover(false))
+    link.style.left = `${box.left}px`
+    link.style.top = `${box.top}px`
+    link.style.width = `${box.right - box.left}px`
+    link.style.height = `${box.bottom - box.top}px`
     link.addEventListener('click', (ev) => {
       // Ctrl/Cmd+clique é a busca inversa do SyncTeX, não um link.
       if (ev.ctrlKey || ev.metaKey) return
@@ -841,8 +967,16 @@ const stateLabel = computed(() => t(`compile.state.${compile.state}`))
   position: absolute;
   display: block;
 }
-.page :deep(.linkLayer a:hover) {
-  background: rgb(106 166 255 / 25%);
+.page :deep(.linkLayer a) {
+  border-radius: 3px;
+  transition:
+    background-color 0.12s ease,
+    box-shadow 0.12s ease;
+}
+.page :deep(.linkLayer a:hover),
+.page :deep(.linkLayer a.hover) {
+  background: rgb(106 166 255 / 22%);
+  box-shadow: 0 0 0 1px rgb(106 166 255 / 55%);
 }
 .page :deep(.sync-hit) {
   position: absolute;

@@ -222,6 +222,25 @@ fn mirror_directories(project_dir: &Path, outdir: &Path) {
     walk(project_dir, Path::new(""), outdir, 0);
 }
 
+/// Valor de `TEXINPUTS`-like com `dir` à frente; o separador final preserva os padrões do TeX.
+fn search_path_with(dir: &Path, existing: Option<OsString>) -> OsString {
+    let sep = if cfg!(windows) { ';' } else { ':' };
+    let mut value = OsString::from(dir.to_string_lossy().replace('\\', "/"));
+    value.push(sep.to_string());
+    if let Some(existing) = existing {
+        value.push(existing);
+    } else {
+        // Vazio no fim = "acrescente o caminho padrão".
+    }
+    value
+}
+
+/// O log registra `No file x.tex.` quando um `\include`/`\input` não foi encontrado.
+fn has_missing_tex_input(log: &str) -> bool {
+    log.lines()
+        .any(|l| l.starts_with("No file ") && l.trim_end().ends_with(".tex."))
+}
+
 fn read_lossy(path: &Path) -> Option<String> {
     fs::read(path)
         .ok()
@@ -285,6 +304,12 @@ pub fn compile(req: &CompileRequest, cancel: &AtomicBool) -> Result<CompileOutco
     // Não falhar a compilação por causa do `.gitignore` (ex.: pasta somente leitura).
     let _ = ensure_gitignore(&req.project_dir, &manifest.compile.outdir);
     mirror_directories(&req.project_dir, &outdir);
+    // Principal em subpasta (ex.: `src/artigo.tex`): `\include{cap/x}` grava o `.aux` em
+    // `<outdir>/cap/` (o caminho é relativo à pasta do principal, não à raiz do projeto).
+    let main_dir = main_path.parent().unwrap_or(&req.project_dir).to_path_buf();
+    if main_dir != req.project_dir {
+        mirror_directories(&main_dir, &outdir);
+    }
 
     let uses_glossaries = fs::read_to_string(&main_path)
         .map(|s| s.contains("\\makeglossaries") || s.contains("{glossaries"))
@@ -297,14 +322,25 @@ pub fn compile(req: &CompileRequest, cancel: &AtomicBool) -> Result<CompileOutco
     let pdf_path = outdir.join(format!("{stem}.pdf"));
     let synctex_path = outdir.join(format!("{stem}.synctex.gz"));
 
+    // O latexmk não rastreia `\input` que falhou: se a última rodada não achou um `.tex`, ele
+    // diria "nada a fazer" mesmo depois de o arquivo passar a ser encontrado.
+    let stale_missing_input = read_lossy(&outdir.join(format!("{stem}.log")))
+        .is_some_and(|log| has_missing_tex_input(&log));
     let mut cmd = process::prepare(&latexmk);
     cmd.args(with_force(
         latexmk_args(manifest, uses_glossaries),
-        req.force,
+        req.force || stale_missing_input,
     ))
     .current_dir(&req.project_dir);
     if let Some(bin) = &req.bin_dir {
         cmd.env("PATH", path_with(bin, std::env::var_os("PATH")));
+    }
+    // O TeX resolve `\input`/`\include`/imagens/`.bib` a partir da pasta de execução (a raiz do
+    // projeto). Se o principal está numa subpasta, ela também entra na busca.
+    if main_dir != req.project_dir {
+        for var in ["TEXINPUTS", "BIBINPUTS", "BSTINPUTS"] {
+            cmd.env(var, search_path_with(&main_dir, std::env::var_os(var)));
+        }
     }
 
     let started_at = SystemTime::now();
@@ -486,6 +522,28 @@ mod tests {
             fs::read_to_string(dir.path().join(".gitignore")).unwrap(),
             ".texlocal/build/\n"
         );
+    }
+
+    #[test]
+    fn search_path_puts_the_main_dir_first_and_keeps_defaults() {
+        let sep = if cfg!(windows) { ';' } else { ':' };
+        let v = search_path_with(Path::new("/p/src"), None);
+        assert_eq!(v.to_string_lossy(), format!("/p/src{sep}"));
+        let v = search_path_with(Path::new("/p/src"), Some(OsString::from("/x")));
+        assert_eq!(v.to_string_lossy(), format!("/p/src{sep}/x"));
+    }
+
+    #[test]
+    fn detects_a_missing_tex_input_in_the_previous_log() {
+        assert!(has_missing_tex_input(
+            "a
+No file textuais/cap01.tex.
+b"
+        ));
+        assert!(!has_missing_tex_input(
+            "No file artigo.bbl.
+"
+        ));
     }
 
     #[test]

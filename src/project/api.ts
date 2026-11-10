@@ -2,7 +2,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { isTauri } from '../tauri'
 
 export type Eol = 'lf' | 'crlf'
-export type Encoding = 'utf8' | 'latin1'
+export type Encoding = 'utf8' | 'latin1' | 'windows1252' | 'iso885915'
 
 export interface FileContent {
   text: string
@@ -143,10 +143,17 @@ function call<T>(cmd: string, args: Record<string, unknown>, fallback?: () => T)
   return fallback ? Promise.resolve(fallback()) : (unavailable() as Promise<T>)
 }
 
-export const fileRead = (path: string) => call<FileContent>('file_read', { path })
+export const fileRead = (path: string, encoding?: Encoding) =>
+  call<FileContent>('file_read', { path, encoding: encoding ?? null })
 
 export const fileWrite = (path: string, text: string, eol: Eol, encoding: Encoding, bom: boolean) =>
   call<{ encoding: Encoding }>('file_write', { path, text, eol, encoding, bom })
+
+export const fileReadBytes = (path: string) => call<ArrayBuffer>('file_read_bytes', { path })
+
+export const pathExists = (path: string) => call<boolean>('path_exists', { path }, () => false)
+
+export const revealPath = (path: string) => call<void>('reveal_path', { path }, () => undefined)
 
 export const projectFiles = (root: string) => call<string[]>('project_files', { root }, () => [])
 

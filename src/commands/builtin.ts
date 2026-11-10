@@ -1,4 +1,4 @@
-import { pickFolder } from '../project/api'
+import { pickFolder, revealPath } from '../project/api'
 import { getActiveView } from '../editor/actions'
 import { useCompileStore } from '../stores/compile'
 import { useEditorStore } from '../stores/editor'
@@ -7,6 +7,7 @@ import { useSettingsStore } from '../stores/settings'
 import { useUiStore } from '../stores/ui'
 import { i18n } from '../i18n'
 import { useNotificationsStore } from '../stores/notifications'
+import { clampZoom } from '../settings/zoom'
 import { registerCommand } from './registry'
 
 async function openFolder() {
@@ -17,6 +18,15 @@ async function openFolder() {
   editor.reset()
   await project.open(picked)
   await editor.restoreSession()
+}
+
+async function openSettingsJson() {
+  const path = await useSettingsStore().filePath()
+  if (!path) {
+    useNotificationsStore().notify('info', i18n.global.t('settings.jsonDesktopOnly'))
+    return
+  }
+  await useEditorStore().openFile(path)
 }
 
 function cycleTab(delta: number) {
@@ -76,6 +86,34 @@ export function registerBuiltinCommands(): void {
     run: () => (ui().settingsOpen = true),
   })
   registerCommand({
+    id: 'settings.openJson',
+    titleKey: 'cmd.openSettingsJson',
+    keybinding: 'Mod+Shift+,',
+    run: () => void openSettingsJson(),
+  })
+  const zoomBy = (delta: number) => {
+    const s = useSettingsStore()
+    void s.update({ zoomLevel: clampZoom(s.effective.zoomLevel + delta) })
+  }
+  registerCommand({
+    id: 'view.zoomIn',
+    titleKey: 'cmd.zoomIn',
+    keybinding: 'Mod+=',
+    run: () => zoomBy(1),
+  })
+  registerCommand({
+    id: 'view.zoomOut',
+    titleKey: 'cmd.zoomOut',
+    keybinding: 'Mod+-',
+    run: () => zoomBy(-1),
+  })
+  registerCommand({
+    id: 'view.zoomReset',
+    titleKey: 'cmd.zoomReset',
+    keybinding: 'Mod+0',
+    run: () => void useSettingsStore().update({ zoomLevel: 0 }),
+  })
+  registerCommand({
     id: 'tex.wizard',
     titleKey: 'cmd.openTexWizard',
     run: () => (ui().wizardOpen = true),
@@ -105,6 +143,15 @@ export function registerBuiltinCommands(): void {
     titleKey: 'cmd.compile',
     keybinding: 'Mod+Alt+B',
     run: () => void useCompileStore().compile({ manual: true }),
+  })
+  registerCommand({
+    id: 'compile.revealPdf',
+    titleKey: 'cmd.revealPdf',
+    run: () => {
+      const path = useCompileStore().pdfPath
+      if (path)
+        void revealPath(path).catch((e) => useNotificationsStore().notify('error', String(e)))
+    },
   })
   registerCommand({
     id: 'compile.cancel',

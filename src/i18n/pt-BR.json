@@ -14,7 +14,13 @@
     "git": "Git",
     "settings": "Configurações"
   },
+  "media": {
+    "actualSize": "Tamanho real",
+    "fit": "Ajustar à janela"
+  },
   "sidebar": {
+    "output": "Saída",
+    "revealPdf": "Mostrar o PDF compilado na pasta",
     "files": "Arquivos",
     "empty": "Nenhum projeto aberto."
   },
@@ -80,6 +86,7 @@
   "bottom": {
     "problems": "Problemas",
     "log": "Log",
+    "close": "Fechar painel",
     "noProblems": "Nenhum problema."
   },
   "layout": {
@@ -98,6 +105,11 @@
     "spell": "Corretor",
     "notifications": "Notificações",
     "eolChange": "Alternar fim de linha (LF/CRLF)",
+    "zoom": "Zoom",
+    "zoomReset": "Restaurar zoom (100%)",
+    "encodingChange": "Alterar a codificação do arquivo",
+    "encodingReopen": "Reabrir com a codificação",
+    "encodingSave": "Salvar com a codificação",
     "encoding": "Codificação",
     "wordsDetail": "Contagem de palavras",
     "wordsBreakdown": "Texto: {words} · Títulos: {headers} · Math em linha: {inline} · Math display: {display}",
@@ -122,6 +134,11 @@
     "modeSplit": "Layout: editor e PDF lado a lado",
     "modeEditor": "Layout: somente editor",
     "modePdf": "Layout: somente PDF",
+    "openSettingsJson": "Abrir configurações (JSON)",
+    "zoomIn": "Aumentar zoom",
+    "zoomOut": "Diminuir zoom",
+    "zoomReset": "Restaurar zoom",
+    "revealPdf": "Mostrar o PDF compilado na pasta",
     "openSettings": "Abrir configurações",
     "toggleTheme": "Alternar tema claro/escuro",
     "openTexWizard": "Configurar o TeX…",
@@ -144,6 +161,7 @@
     "toggleBoxWarnings": "Mostrar/ocultar avisos de caixas overfull/underfull"
   },
   "settings": {
+    "jsonDesktopOnly": "O arquivo de configurações só existe no app desktop.",
     "title": "Configurações",
     "search": "Buscar configuração…",
     "close": "Fechar",

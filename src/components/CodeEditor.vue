@@ -184,7 +184,7 @@ async function addWord(scope: 'global' | 'project') {
 function show() {
   if (!view) return
   const path = editor.active
-  if (!path) {
+  if (!path || editor.activeTab?.media) {
     registerActiveView(null, null)
     return
   }

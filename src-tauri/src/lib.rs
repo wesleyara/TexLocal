@@ -40,6 +40,16 @@ fn save_settings(app: tauri::AppHandle, settings: Settings) -> Result<(), String
     fs::write(&path, settings.to_json()).map_err(|e| e.to_string())
 }
 
+/// Caminho do `settings.json` (criado com os padrões se ainda não existir), para abrir no editor.
+#[tauri::command]
+fn settings_file(app: tauri::AppHandle) -> Result<String, String> {
+    let path = settings_path(&app)?;
+    if !path.exists() {
+        save_settings(app, Settings::default())?;
+    }
+    Ok(path.to_string_lossy().into_owned())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -52,6 +62,7 @@ pub fn run() {
             app_version,
             get_settings,
             save_settings,
+            settings_file,
             tex_commands::detect_tex,
             tex_commands::tex_profiles,
             tex_commands::tex_disk_info,
@@ -72,6 +83,9 @@ pub fn run() {
             editor_commands::file_read,
             editor_commands::file_write,
             editor_commands::project_files,
+            editor_commands::path_exists,
+            editor_commands::file_read_bytes,
+            editor_commands::reveal_path,
             editor_commands::project_open,
             editor_commands::index_update,
             editor_commands::index_remove,

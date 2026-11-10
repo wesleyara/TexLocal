@@ -45,10 +45,10 @@ pub struct FileContent {
 }
 
 #[tauri::command]
-pub async fn file_read(path: String) -> Result<FileContent, String> {
+pub async fn file_read(path: String, encoding: Option<Encoding>) -> Result<FileContent, String> {
     blocking(move || {
         let bytes = std::fs::read(&path).map_err(|e| format!("{path}: {e}"))?;
-        let d = textfile::decode(&bytes);
+        let d = textfile::decode_as(&bytes, encoding);
         Ok(FileContent {
             text: d.text,
             eol: d.eol,
@@ -62,7 +62,7 @@ pub async fn file_read(path: String) -> Result<FileContent, String> {
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct WriteResult {
-    /// Codificação realmente usada (cai para UTF-8 se o texto não cabe em Latin-1).
+    /// Codificação realmente usada (cai para UTF-8 se o texto não cabe na escolhida).
     encoding: Encoding,
 }
 
@@ -98,23 +98,88 @@ pub async fn file_write(
     .await
 }
 
+/// Bytes do arquivo, sem decodificar (imagens e PDFs da visualização).
+#[tauri::command]
+pub async fn file_read_bytes(path: String) -> Result<tauri::ipc::Response, String> {
+    blocking(move || {
+        std::fs::read(&path)
+            .map(tauri::ipc::Response::new)
+            .map_err(|e| format!("{path}: {e}"))
+    })
+    .await
+}
+
+#[tauri::command]
+pub fn path_exists(path: String) -> bool {
+    Path::new(&path).is_file()
+}
+
+/// Mostra o arquivo no gerenciador de arquivos do sistema (Explorer/Finder), já selecionado.
+#[tauri::command]
+pub fn reveal_path(path: String) -> Result<(), String> {
+    let target = PathBuf::from(&path);
+    if !target.exists() {
+        return Err(format!("{path}: arquivo não encontrado"));
+    }
+    #[cfg(windows)]
+    {
+        // O `explorer /select,` só entende barras invertidas.
+        let native = path.replace('/', "\\");
+        std::process::Command::new("explorer")
+            .arg(format!("/select,{native}"))
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .arg("-R")
+            .arg(&target)
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    #[cfg(all(unix, not(target_os = "macos")))]
+    {
+        let dir = target.parent().unwrap_or(&target);
+        std::process::Command::new("xdg-open")
+            .arg(dir)
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
 /// Lista os arquivos do projeto (relativos à raiz), respeitando `.gitignore`.
 #[tauri::command]
 pub async fn project_files(root: String) -> Result<Vec<String>, String> {
     blocking(move || {
         let root = PathBuf::from(root);
+        let relative = |e: ignore::DirEntry| -> Option<String> {
+            if !e.file_type().is_some_and(|t| t.is_file()) {
+                return None;
+            }
+            let rel = e.path().strip_prefix(&root).ok()?;
+            Some(rel.to_string_lossy().replace('\\', "/"))
+        };
+        // Arquivos do projeto: mostra os ocultos (`.vscode`…), respeita o `.gitignore`.
         let mut files: Vec<String> = ignore::WalkBuilder::new(&root)
+            .hidden(false)
             .filter_entry(|e| e.file_name() != ".texlocal" && e.file_name() != ".git")
             .build()
             .flatten()
-            .filter(|e| e.file_type().is_some_and(|t| t.is_file()))
-            .filter_map(|e| {
-                e.path()
-                    .strip_prefix(&root)
-                    .ok()
-                    .map(|p| p.to_string_lossy().replace('\\', "/"))
-            })
+            .filter_map(relative)
             .collect();
+        // `.texlocal` (manifesto, build e PDF) está no `.gitignore` do projeto, mas deve aparecer.
+        let texlocal = root.join(".texlocal");
+        if texlocal.is_dir() {
+            files.extend(
+                ignore::WalkBuilder::new(&texlocal)
+                    .standard_filters(false)
+                    .build()
+                    .flatten()
+                    .filter_map(relative),
+            );
+        }
         files.sort_by_key(|f| f.to_lowercase());
         Ok(files)
     })

@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n'
 import { useEditorStore } from '../stores/editor'
 import { useProjectStore } from '../stores/project'
 import CodeEditor from './CodeEditor.vue'
+import MediaViewer from './MediaViewer.vue'
 import TabBar from './TabBar.vue'
 
 const { t } = useI18n()
@@ -13,7 +14,13 @@ const project = useProjectStore()
 <template>
   <div class="editor-pane">
     <TabBar />
-    <CodeEditor />
+    <MediaViewer
+      v-if="editor.activeTab?.media"
+      :key="editor.activeTab.path"
+      :path="editor.activeTab.path"
+      :kind="editor.activeTab.media"
+    />
+    <CodeEditor v-show="!editor.activeTab?.media" />
     <div v-if="!editor.active" class="empty">
       <p class="muted">{{ project.root ? t('editor.noFile') : t('editor.placeholder') }}</p>
       <button v-if="!project.root" class="primary" @click="project.openFolder()">

@@ -48,9 +48,9 @@ export const useProjectStore = defineStore('project', () => {
   /** Arquivos relativos à pasta do principal, para completar `\input` e `\includegraphics`. */
   const filesFromMain = computed(() => {
     if (!root.value || !mainDir.value) return files.value
-    return files.value.map((f) =>
-      relativePath(mainDir.value as string, joinPath(root.value as string, f)),
-    )
+    return files.value
+      .filter((f) => !f.startsWith('.texlocal/'))
+      .map((f) => relativePath(mainDir.value as string, joinPath(root.value as string, f)))
   })
   const spellLanguage = computed(() => manifestLanguage.value ?? detectedLanguage.value)
 

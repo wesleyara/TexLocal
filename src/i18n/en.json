@@ -14,7 +14,13 @@
     "git": "Git",
     "settings": "Settings"
   },
+  "media": {
+    "actualSize": "Actual size",
+    "fit": "Fit to window"
+  },
   "sidebar": {
+    "output": "Output",
+    "revealPdf": "Show the compiled PDF in the file manager",
     "files": "Files",
     "empty": "No project open."
   },
@@ -80,6 +86,7 @@
   "bottom": {
     "problems": "Problems",
     "log": "Log",
+    "close": "Close panel",
     "noProblems": "No problems."
   },
   "layout": {
@@ -98,6 +105,11 @@
     "spell": "Spell checker",
     "notifications": "Notifications",
     "eolChange": "Toggle line ending (LF/CRLF)",
+    "zoom": "Zoom",
+    "zoomReset": "Reset zoom (100%)",
+    "encodingChange": "Change file encoding",
+    "encodingReopen": "Reopen with encoding",
+    "encodingSave": "Save with encoding",
     "encoding": "Encoding",
     "wordsDetail": "Word count",
     "wordsBreakdown": "Text: {words} · Headers: {headers} · Inline math: {inline} · Display math: {display}",
@@ -122,6 +134,11 @@
     "modeSplit": "Layout: editor and PDF side by side",
     "modeEditor": "Layout: editor only",
     "modePdf": "Layout: PDF only",
+    "openSettingsJson": "Open settings (JSON)",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "zoomReset": "Reset zoom",
+    "revealPdf": "Show compiled PDF in folder",
     "openSettings": "Open settings",
     "toggleTheme": "Toggle light/dark theme",
     "openTexWizard": "Set up TeX…",
@@ -144,6 +161,7 @@
     "toggleBoxWarnings": "Show/hide overfull/underfull box warnings"
   },
   "settings": {
+    "jsonDesktopOnly": "The settings file is only available in the desktop app.",
     "title": "Settings",
     "search": "Search settings…",
     "close": "Close",

@@ -2,11 +2,14 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useCompileStore } from '../stores/compile'
+import { useUiStore } from '../stores/ui'
+import AppIcon from './AppIcon.vue'
 import ProblemsPanel from './ProblemsPanel.vue'
 import RawLogPanel from './RawLogPanel.vue'
 
 const { t } = useI18n()
 const compile = useCompileStore()
+const ui = useUiStore()
 const tab = ref<'problems' | 'log'>('problems')
 </script>
 
@@ -30,6 +33,15 @@ const tab = ref<'problems' | 'log'>('problems')
         @click="tab = 'log'"
       >
         {{ t('bottom.log') }}
+      </button>
+      <span class="grow" />
+      <button
+        class="close"
+        :title="t('bottom.close')"
+        :aria-label="t('bottom.close')"
+        @click="ui.layout.bottomVisible = false"
+      >
+        <AppIcon name="close" :size="14" />
       </button>
     </div>
     <div class="content" role="tabpanel">
@@ -61,6 +73,20 @@ const tab = ref<'problems' | 'log'>('problems')
   letter-spacing: 0.04em;
   color: var(--text-muted);
   cursor: pointer;
+}
+.tabs .grow {
+  flex: 1;
+}
+.tabs button.close {
+  display: inline-flex;
+  align-items: center;
+  border-bottom: 0;
+  padding: 2px;
+  border-radius: var(--radius);
+}
+.tabs button.close:hover {
+  background: var(--bg-hover);
+  color: var(--text);
 }
 .tabs button.active {
   color: var(--text);

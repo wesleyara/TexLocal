@@ -16,7 +16,12 @@ export interface Settings {
   /** Espelho CTAN fixado (vazio = automático). */
   texMirror?: string
   texAutoInstall: AutoInstall
+  /** Zoom da interface (cada passo = 20%); 0 = 100%. */
+  zoomLevel: number
 }
+
+export const ZOOM_MIN = -4
+export const ZOOM_MAX = 8
 
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'dark',
@@ -24,6 +29,7 @@ export const DEFAULT_SETTINGS: Settings = {
   keybindings: {},
   texSource: 'unset',
   texAutoInstall: 'ask',
+  zoomLevel: 0,
 }
 
 const THEMES: ThemeSetting[] = ['system', 'dark', 'light']
@@ -55,6 +61,15 @@ export function validateSettings(value: unknown): Settings {
   if (!AUTO_INSTALLS.includes(texAutoInstall as AutoInstall)) {
     throw new Error(`texAutoInstall inválido: ${String(texAutoInstall)}`)
   }
+  const zoomLevel = v.zoomLevel ?? DEFAULT_SETTINGS.zoomLevel
+  if (
+    typeof zoomLevel !== 'number' ||
+    !Number.isInteger(zoomLevel) ||
+    zoomLevel < ZOOM_MIN ||
+    zoomLevel > ZOOM_MAX
+  ) {
+    throw new Error(`zoomLevel inválido: ${String(zoomLevel)}`)
+  }
   if (v.texBinDir !== undefined && typeof v.texBinDir !== 'string') {
     throw new Error('texBinDir deve ser texto')
   }
@@ -74,6 +89,7 @@ export function validateSettings(value: unknown): Settings {
     keybindings: { ...(kb as Record<string, string>) },
     texSource: texSource as TexSource,
     texAutoInstall: texAutoInstall as AutoInstall,
+    zoomLevel,
     ...(v.texBinDir !== undefined ? { texBinDir: v.texBinDir as string } : {}),
     ...(v.texMirror !== undefined ? { texMirror: v.texMirror as string } : {}),
   }

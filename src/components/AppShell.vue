@@ -34,6 +34,12 @@ function onKeydown(e: KeyboardEvent) {
     ui.wizardOpen = false
     return
   }
+  // "Ctrl++" chega como key "+", que não cabe na sintaxe de atalhos ("mod+shift++").
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key === '+') {
+    e.preventDefault()
+    getCommand('view.zoomIn')?.run()
+    return
+  }
   const overrides = settings.effective.keybindings
   for (const command of allCommands()) {
     const binding = effectiveBinding(command, overrides)
@@ -99,7 +105,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
             class="pane pdf"
             :style="
               ui.layout.viewMode === 'split'
-                ? { width: ui.layout.pdfWidth + 'px', flex: 'none' }
+                ? { width: ui.layout.pdfWidth + 'px', flex: 'none', maxWidth: 'calc(100% - 300px)' }
                 : {}
             "
           >
@@ -165,6 +171,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   overflow: auto;
 }
 .pane.editor {
+  min-width: 280px;
   display: flex;
   padding: 0;
   overflow: hidden;

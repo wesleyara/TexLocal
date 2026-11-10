@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { wordCountFiles, type ProjectCount } from '../project/api'
+import { wordCountFiles, type Encoding, type ProjectCount } from '../project/api'
 import { useCompileStore } from '../stores/compile'
 import { useEditorStore } from '../stores/editor'
 import { useNotificationsStore } from '../stores/notifications'
 import { useProjectStore } from '../stores/project'
+import { useSettingsStore } from '../stores/settings'
 import { useUiStore } from '../stores/ui'
+import { zoomFactor } from '../settings/zoom'
 import AppIcon from './AppIcon.vue'
 import NotificationCenter from './NotificationCenter.vue'
 
@@ -16,6 +18,8 @@ const editor = useEditorStore()
 const project = useProjectStore()
 const compile = useCompileStore()
 const ui = useUiStore()
+const settings = useSettingsStore()
+const zoomLabel = computed(() => `${Math.round(zoomFactor(settings.effective.zoomLevel) * 100)}%`)
 const centerOpen = ref(false)
 const detailsOpen = ref(false)
 const count = ref<ProjectCount | null>(null)
@@ -43,7 +47,24 @@ const words = computed(() => {
 })
 const cursor = computed(() => `${editor.cursor.line}:${editor.cursor.col}`)
 const eol = computed(() => (editor.activeTab?.eol ?? 'lf').toUpperCase())
-const encoding = computed(() => (editor.activeTab?.encoding === 'latin1' ? 'Latin-1' : 'UTF-8'))
+const ENCODINGS: { id: Encoding; label: string }[] = [
+  { id: 'utf8', label: 'UTF-8' },
+  { id: 'latin1', label: 'ISO-8859-1 (Latin-1)' },
+  { id: 'iso885915', label: 'ISO-8859-15 (Latin-9)' },
+  { id: 'windows1252', label: 'Windows-1252' },
+]
+const encoding = computed(
+  () => ENCODINGS.find((e) => e.id === editor.activeTab?.encoding)?.label.split(' ')[0] ?? 'UTF-8',
+)
+const encMenuOpen = ref(false)
+
+function pickEncoding(mode: 'reopen' | 'save', id: Encoding) {
+  const tab = editor.activeTab
+  encMenuOpen.value = false
+  if (!tab) return
+  if (mode === 'reopen') void editor.reopenWithEncoding(tab.path, id)
+  else editor.saveWithEncoding(tab.path, id)
+}
 const spell = computed(() => {
   const lang = project.spellLanguage
   if (!lang) return '—'
@@ -131,13 +152,50 @@ function toggleProblems() {
     >
       <span class="sr-only">{{ t('status.eol') }}:</span>{{ eol }}
     </button>
-    <span class="item" :title="t('status.encoding')">
+    <button
+      class="item btn"
+      :title="t('status.encodingChange')"
+      :disabled="!editor.activeTab"
+      :aria-expanded="encMenuOpen"
+      aria-haspopup="menu"
+      @click="encMenuOpen = !encMenuOpen"
+    >
       <span class="sr-only">{{ t('status.encoding') }}:</span>{{ encoding }}
-    </span>
+    </button>
+    <div
+      v-if="encMenuOpen && editor.activeTab"
+      class="encmenu"
+      role="menu"
+      @keydown.esc="encMenuOpen = false"
+    >
+      <div v-for="mode in ['reopen', 'save'] as const" :key="mode" class="group">
+        <p class="head">
+          {{ t(mode === 'reopen' ? 'status.encodingReopen' : 'status.encodingSave') }}
+        </p>
+        <button
+          v-for="e in ENCODINGS"
+          :key="e.id"
+          role="menuitem"
+          :disabled="mode === 'reopen' && editor.activeTab.dirty"
+          :class="{ current: e.id === editor.activeTab.encoding }"
+          @click="pickEncoding(mode, e.id)"
+        >
+          {{ e.label }}
+        </button>
+      </div>
+    </div>
     <span class="item" :title="t('status.spell')">
       <span class="sr-only">{{ t('status.spell') }}:</span>{{ spell }}
     </span>
     <span class="spacer" />
+    <button
+      class="item btn"
+      :title="t('status.zoomReset')"
+      :aria-label="`${t('status.zoom')}: ${zoomLabel}`"
+      @click="settings.update({ zoomLevel: 0 })"
+    >
+      {{ zoomLabel }}
+    </button>
     <button
       v-for="task in notifications.tasks"
       :key="task.id"
@@ -241,6 +299,50 @@ function toggleProblems() {
 .compile.error,
 .compile.timedOut {
   color: var(--danger);
+}
+.encmenu {
+  position: absolute;
+  bottom: 26px;
+  left: 50%;
+  z-index: 30;
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-2);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  color: var(--text);
+}
+.encmenu .group {
+  display: flex;
+  flex-direction: column;
+}
+.encmenu .head {
+  margin: 0 0 var(--space-1);
+  padding: 0 var(--space-2);
+  color: var(--text-muted);
+  font-size: 11px;
+}
+.encmenu button {
+  background: none;
+  border: 0;
+  padding: 3px var(--space-2);
+  border-radius: var(--radius);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.encmenu button:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+.encmenu button:disabled {
+  color: var(--text-muted);
+  cursor: default;
+}
+.encmenu button.current {
+  color: var(--accent);
 }
 .details {
   position: absolute;
