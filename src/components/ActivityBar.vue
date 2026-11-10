@@ -20,8 +20,12 @@ const items = [
       :key="i.id"
       :title="t(i.key)"
       :aria-label="t(i.key)"
-      :aria-pressed="i.id === 'files' && ui.layout.sidebarVisible"
-      @click="i.id === 'files' && ui.toggleSidebar()"
+      :aria-pressed="
+        (i.id === 'files' || i.id === 'search') &&
+        ui.layout.sidebarVisible &&
+        ui.sidebarPanel === i.id
+      "
+      @click="(i.id === 'files' || i.id === 'search') && ui.showSidebarPanel(i.id)"
     >
       <span aria-hidden="true">{{ i.glyph }}</span>
     </button>

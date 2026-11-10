@@ -20,7 +20,45 @@
   },
   "editor": {
     "title": "Editor",
-    "placeholder": "Open a folder to start writing."
+    "placeholder": "Open a folder to start writing.",
+    "noFile": "No file open. Pick a file in the sidebar.",
+    "tabs": "Open files",
+    "unsaved": "Unsaved changes",
+    "closeTab": "Close {name}",
+    "tab": {
+      "close": "Close",
+      "closeOthers": "Close others",
+      "closeRight": "Close to the right"
+    },
+    "latin1Warning": "{name} is not UTF-8 (looks like Latin-1). It will be saved with the same encoding.",
+    "latin1Converted": "{name} has characters that do not fit in Latin-1; it was saved as UTF-8.",
+    "saveFailed": "Could not save {name}: {error}",
+    "usages": "Usages of {name}",
+    "definition": "Definition:",
+    "noUsages": "No usages found.",
+    "problem": {
+      "duplicateLabel": "Duplicate label: {name}",
+      "undefinedRef": "Undefined reference: {name}",
+      "missingFile": "Included file not found: {name}"
+    },
+    "rename": {
+      "title": "Rename label",
+      "confirm": "Rename",
+      "invalid": "Invalid name: use a name without spaces, braces, commas, % or backslashes.",
+      "exists": "A label named {name} already exists.",
+      "done": "Label renamed in {count} file(s)."
+    },
+    "spell": {
+      "noSuggestions": "No suggestions",
+      "addProject": "Add to project dictionary",
+      "addGlobal": "Add to global dictionary"
+    },
+    "autosave": {
+      "both": "Autosave: while typing and on focus loss",
+      "delay": "Autosave: 1 s after typing",
+      "blur": "Autosave: on focus loss",
+      "off": "Autosave off"
+    }
   },
   "pdf": {
     "title": "PDF",
@@ -45,7 +83,12 @@
     "cursor": "Cursor position",
     "eol": "End of line",
     "spell": "Spell checker",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "eolChange": "Toggle line ending (LF/CRLF)",
+    "encoding": "Encoding",
+    "wordsDetail": "Word count",
+    "wordsBreakdown": "Text: {words} · Headers: {headers} · Inline math: {inline} · Display math: {display}",
+    "beforeFirstSection": "(before the first section)"
   },
   "palette": {
     "commandsPlaceholder": "Type a command…",
@@ -64,7 +107,18 @@
     "modePdf": "Layout: PDF only",
     "openSettings": "Open settings",
     "toggleTheme": "Toggle light/dark theme",
-    "openTexWizard": "Set up TeX…"
+    "openTexWizard": "Set up TeX…",
+    "openFolder": "Open folder…",
+    "save": "Save",
+    "saveAll": "Save all",
+    "closeTab": "Close tab",
+    "nextTab": "Next tab",
+    "prevTab": "Previous tab",
+    "toggleWrap": "Toggle word wrap",
+    "cycleAutosave": "Cycle autosave mode",
+    "toggleEol": "Toggle line ending (LF/CRLF)",
+    "gotoLine": "Go to line…",
+    "searchProject": "Search in project"
   },
   "settings": {
     "title": "Settings",
@@ -176,5 +230,28 @@
       "io": "Error accessing files on disk.",
       "unavailable": "Installing is only available in the desktop app."
     }
+  },
+  "project": {
+    "open": "Open folder…"
+  },
+  "outline": {
+    "title": "Outline",
+    "empty": "No sections found."
+  },
+  "search": {
+    "title": "Search in project",
+    "find": "Find",
+    "replace": "Replace with",
+    "glob": "Files (e.g. *.tex, chapters/**)",
+    "regex": "Regex",
+    "case": "Match case",
+    "word": "Whole word",
+    "run": "Search",
+    "replaceAll": "Replace all",
+    "replaceFile": "Replace in this file",
+    "summary": "{matches} result(s) in {files} file(s)",
+    "confirm": "Replace in {count} file(s)? This writes to disk.",
+    "replaced": "Replaced in {count} file(s).",
+    "skippedDirty": "{count} file(s) with unsaved changes were skipped. Save and try again."
   }
 }

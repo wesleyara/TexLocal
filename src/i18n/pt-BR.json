@@ -20,7 +20,45 @@
   },
   "editor": {
     "title": "Editor",
-    "placeholder": "Abra uma pasta para começar a escrever."
+    "placeholder": "Abra uma pasta para começar a escrever.",
+    "noFile": "Nenhum arquivo aberto. Escolha um arquivo na barra lateral.",
+    "tabs": "Arquivos abertos",
+    "unsaved": "Alterações não salvas",
+    "closeTab": "Fechar {name}",
+    "tab": {
+      "close": "Fechar",
+      "closeOthers": "Fechar as outras",
+      "closeRight": "Fechar à direita"
+    },
+    "latin1Warning": "{name} não está em UTF-8 (parece Latin-1). Ele será salvo na mesma codificação.",
+    "latin1Converted": "{name} tem caracteres que não cabem em Latin-1; foi salvo em UTF-8.",
+    "saveFailed": "Não foi possível salvar {name}: {error}",
+    "usages": "Usos de {name}",
+    "definition": "Definição:",
+    "noUsages": "Nenhum uso encontrado.",
+    "problem": {
+      "duplicateLabel": "Label duplicado: {name}",
+      "undefinedRef": "Referência inexistente: {name}",
+      "missingFile": "Arquivo incluído não encontrado: {name}"
+    },
+    "rename": {
+      "title": "Renomear label",
+      "confirm": "Renomear",
+      "invalid": "Nome inválido: use um nome sem espaços, chaves, vírgulas, % ou barras invertidas.",
+      "exists": "Já existe um label chamado {name}.",
+      "done": "Label renomeado em {count} arquivo(s)."
+    },
+    "spell": {
+      "noSuggestions": "Sem sugestões",
+      "addProject": "Adicionar ao dicionário do projeto",
+      "addGlobal": "Adicionar ao dicionário global"
+    },
+    "autosave": {
+      "both": "Salvamento automático: ao digitar e ao perder o foco",
+      "delay": "Salvamento automático: 1 s após digitar",
+      "blur": "Salvamento automático: ao perder o foco",
+      "off": "Salvamento automático desativado"
+    }
   },
   "pdf": {
     "title": "PDF",
@@ -45,7 +83,12 @@
     "cursor": "Posição do cursor",
     "eol": "Fim de linha",
     "spell": "Corretor",
-    "notifications": "Notificações"
+    "notifications": "Notificações",
+    "eolChange": "Alternar fim de linha (LF/CRLF)",
+    "encoding": "Codificação",
+    "wordsDetail": "Contagem de palavras",
+    "wordsBreakdown": "Texto: {words} · Títulos: {headers} · Math em linha: {inline} · Math display: {display}",
+    "beforeFirstSection": "(antes da primeira seção)"
   },
   "palette": {
     "commandsPlaceholder": "Digite um comando…",
@@ -64,7 +107,18 @@
     "modePdf": "Layout: somente PDF",
     "openSettings": "Abrir configurações",
     "toggleTheme": "Alternar tema claro/escuro",
-    "openTexWizard": "Configurar o TeX…"
+    "openTexWizard": "Configurar o TeX…",
+    "openFolder": "Abrir pasta…",
+    "save": "Salvar",
+    "saveAll": "Salvar tudo",
+    "closeTab": "Fechar aba",
+    "nextTab": "Próxima aba",
+    "prevTab": "Aba anterior",
+    "toggleWrap": "Alternar quebra de linha",
+    "cycleAutosave": "Alternar modo de salvamento automático",
+    "toggleEol": "Alternar fim de linha (LF/CRLF)",
+    "gotoLine": "Ir para a linha…",
+    "searchProject": "Buscar no projeto"
   },
   "settings": {
     "title": "Configurações",
@@ -176,5 +230,28 @@
       "io": "Erro ao acessar arquivos no disco.",
       "unavailable": "A instalação só está disponível no aplicativo desktop."
     }
+  },
+  "project": {
+    "open": "Abrir pasta…"
+  },
+  "outline": {
+    "title": "Estrutura",
+    "empty": "Nenhuma seção encontrada."
+  },
+  "search": {
+    "title": "Buscar no projeto",
+    "find": "Buscar",
+    "replace": "Substituir por",
+    "glob": "Arquivos (ex.: *.tex, chapters/**)",
+    "regex": "Regex",
+    "case": "Maiúsc./minúsc.",
+    "word": "Palavra inteira",
+    "run": "Buscar",
+    "replaceAll": "Substituir tudo",
+    "replaceFile": "Substituir neste arquivo",
+    "summary": "{matches} resultado(s) em {files} arquivo(s)",
+    "confirm": "Substituir em {count} arquivo(s)? Esta ação grava no disco.",
+    "replaced": "Substituição feita em {count} arquivo(s).",
+    "skippedDirty": "{count} arquivo(s) com alterações não salvas foram ignorados. Salve e tente de novo."
   }
 }

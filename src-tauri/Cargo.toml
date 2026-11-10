@@ -1,5 +1,5 @@
 [workspace]
-members = [".", "crates/texlocal-core", "crates/texlocal-git", "crates/texlocal-tex"]
+members = [".", "crates/texlocal-core", "crates/texlocal-git", "crates/texlocal-tex", "crates/texlocal-project"]
 resolver = "2"
 
 [workspace.package]
@@ -34,3 +34,6 @@ serde_json = "1"
 texlocal-core = { path = "crates/texlocal-core" }
 texlocal-git = { path = "crates/texlocal-git" }
 texlocal-tex = { path = "crates/texlocal-tex" }
+ignore = "0.4"
+texlocal-project = { path = "crates/texlocal-project" }
+tauri-plugin-dialog = "2"
