@@ -1,16 +1,19 @@
 <script setup lang="ts">
-import { onMounted, watchEffect } from 'vue'
+import { onMounted, watch, watchEffect } from 'vue'
 import AppShell from './components/AppShell.vue'
 import { setLocale } from './i18n'
 import { useEditorStore } from './stores/editor'
 import { useProjectStore } from './stores/project'
 import { useSettingsStore } from './stores/settings'
+import { applyZoom } from './settings/zoom'
+import { useNotificationsStore } from './stores/notifications'
 import { useUiStore } from './stores/ui'
 
 const settings = useSettingsStore()
 const ui = useUiStore()
 const project = useProjectStore()
 const editor = useEditorStore()
+const notifications = useNotificationsStore()
 
 onMounted(async () => {
   await settings.load()
@@ -37,6 +40,19 @@ watchEffect(() => {
 })
 
 watchEffect(() => setLocale(settings.effective.locale))
+
+watchEffect(() => void applyZoom(settings.effective.zoomLevel))
+
+// Ao salvar o settings.json aberto no editor, as alterações valem na hora.
+watch(
+  () => editor.saved,
+  async (s) => {
+    const file = await settings.filePath()
+    if (!file || s.path.replace(/\\/g, '/') !== file.replace(/\\/g, '/')) return
+    const error = await settings.reload()
+    if (error) notifications.notify('error', error)
+  },
+)
 </script>
 
 <template>

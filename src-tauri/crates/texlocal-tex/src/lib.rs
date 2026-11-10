@@ -1,6 +1,8 @@
 //! Gerenciamento do TeX Live: detecção, manifesto do projeto, `tlmgr` e utilitários.
 
+pub mod compile;
 pub mod detect;
+pub mod diagnostics;
 pub mod disk;
 pub mod installer;
 pub mod logparse;
@@ -9,6 +11,8 @@ pub mod paths;
 pub mod process;
 pub mod profile;
 pub mod reconcile;
+pub mod resources;
+pub mod synctex;
 pub mod tlmgr;
 
 use std::path::Path;

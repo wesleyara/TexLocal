@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { useUiStore } from '../stores/ui'
+import AppIcon from './AppIcon.vue'
 
 const { t } = useI18n()
 const ui = useUiStore()
 
 const items = [
-  { id: 'files', key: 'activity.files', glyph: '▤' },
-  { id: 'search', key: 'activity.search', glyph: '⌕' },
-  { id: 'history', key: 'activity.history', glyph: '↺' },
-  { id: 'git', key: 'activity.git', glyph: '⑂' },
+  { id: 'files', key: 'activity.files', icon: 'file-tree' },
+  { id: 'search', key: 'activity.search', icon: 'magnify' },
+  { id: 'history', key: 'activity.history', icon: 'history' },
+  { id: 'git', key: 'activity.git', icon: 'source-branch' },
 ]
 </script>
 
@@ -27,7 +28,7 @@ const items = [
       "
       @click="(i.id === 'files' || i.id === 'search') && ui.showSidebarPanel(i.id)"
     >
-      <span aria-hidden="true">{{ i.glyph }}</span>
+      <AppIcon :name="i.icon" :size="22" />
     </button>
     <span class="spacer" />
     <button
@@ -35,7 +36,7 @@ const items = [
       :aria-label="t('activity.settings')"
       @click="ui.settingsOpen = true"
     >
-      <span aria-hidden="true">⚙</span>
+      <AppIcon name="cog-outline" :size="22" />
     </button>
   </nav>
 </template>
@@ -54,7 +55,9 @@ button {
   background: none;
   border: 0;
   color: var(--text-muted);
-  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
 }
 button:hover,

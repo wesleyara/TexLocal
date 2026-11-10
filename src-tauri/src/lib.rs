@@ -1,3 +1,4 @@
+mod compile_commands;
 mod editor_commands;
 mod tex_commands;
 
@@ -39,16 +40,29 @@ fn save_settings(app: tauri::AppHandle, settings: Settings) -> Result<(), String
     fs::write(&path, settings.to_json()).map_err(|e| e.to_string())
 }
 
+/// Caminho do `settings.json` (criado com os padrões se ainda não existir), para abrir no editor.
+#[tauri::command]
+fn settings_file(app: tauri::AppHandle) -> Result<String, String> {
+    let path = settings_path(&app)?;
+    if !path.exists() {
+        save_settings(app, Settings::default())?;
+    }
+    Ok(path.to_string_lossy().into_owned())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .manage(tex_commands::InstallState::default())
+        .manage(tex_commands::PackageState::default())
         .manage(editor_commands::ProjectState::default())
+        .manage(compile_commands::CompileState::default())
         .invoke_handler(tauri::generate_handler![
             app_version,
             get_settings,
             save_settings,
+            settings_file,
             tex_commands::detect_tex,
             tex_commands::tex_profiles,
             tex_commands::tex_disk_info,
@@ -56,9 +70,22 @@ pub fn run() {
             tex_commands::save_project_manifest,
             tex_commands::tex_install,
             tex_commands::tex_install_cancel,
+            tex_commands::tex_resolve_package,
+            tex_commands::tex_install_packages,
+            tex_commands::tex_install_packages_cancel,
+            tex_commands::resources_list,
+            tex_commands::resources_remove,
+            compile_commands::compile_start,
+            compile_commands::compile_cancel,
+            compile_commands::pdf_read,
+            compile_commands::synctex_forward,
+            compile_commands::synctex_inverse,
             editor_commands::file_read,
             editor_commands::file_write,
             editor_commands::project_files,
+            editor_commands::path_exists,
+            editor_commands::file_read_bytes,
+            editor_commands::reveal_path,
             editor_commands::project_open,
             editor_commands::index_update,
             editor_commands::index_remove,

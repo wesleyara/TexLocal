@@ -70,7 +70,8 @@ export function formatProfileSize(mb: number): string {
 export function formatBytes(bytes: number): string {
   const gb = bytes / 1024 ** 3
   if (gb >= 1) return `${gb.toFixed(1)} GB`
-  return `${Math.round(bytes / 1024 ** 2)} MB`
+  if (bytes >= 1024 ** 2) return `${Math.round(bytes / 1024 ** 2)} MB`
+  return `${Math.max(0, Math.round(bytes / 1024))} KB`
 }
 
 /** Normaliza qualquer falha em um InstallError exibível. */
@@ -115,4 +116,63 @@ export async function cancelInstall(): Promise<void> {
 export async function onInstallEvent(cb: (e: InstallEvent) => void): Promise<UnlistenFn> {
   if (!isTauri()) return () => {}
   return listen<InstallEvent>('tex-install', (ev) => cb(ev.payload))
+}
+
+export type ResourceKind = 'texTree' | 'partial' | 'downloadCache'
+
+/** Algo baixado pelo app que ocupa disco e pode ser removido. */
+export interface Resource {
+  /** Identificador estável (caminho relativo à pasta de dados do app). */
+  id: string
+  kind: ResourceKind
+  year: number | null
+  path: string
+  sizeBytes: number
+}
+
+export async function listResources(): Promise<Resource[]> {
+  if (!isTauri()) return []
+  return invoke<Resource[]>('resources_list')
+}
+
+export async function removeResource(id: string): Promise<void> {
+  if (!isTauri()) return
+  await invoke('resources_remove', { id })
+}
+
+export interface PackageProgress {
+  current: number
+  total: number
+  action: string
+  package: string
+}
+
+/** Pacote do TeX Live que contém `file` (ex.: `abntex2.cls` -> `abntex2`); `null` se ninguém tem. */
+export async function resolvePackage(
+  binDir: string | undefined,
+  usermode: boolean,
+  file: string,
+): Promise<string | null> {
+  if (!isTauri()) return null
+  return invoke<string | null>('tex_resolve_package', { binDir: binDir ?? null, usermode, file })
+}
+
+export async function installPackages(
+  binDir: string | undefined,
+  usermode: boolean,
+  packages: string[],
+): Promise<void> {
+  if (!isTauri()) {
+    throw { kind: 'unavailable', i18nKey: 'installer.error.unavailable', details: '' }
+  }
+  await invoke('tex_install_packages', { binDir: binDir ?? null, usermode, packages })
+}
+
+export async function cancelPackageInstall(): Promise<void> {
+  if (isTauri()) await invoke('tex_install_packages_cancel')
+}
+
+export async function onPackageProgress(cb: (p: PackageProgress) => void): Promise<UnlistenFn> {
+  if (!isTauri()) return () => {}
+  return listen<PackageProgress>('tlmgr-progress', (ev) => cb(ev.payload))
 }

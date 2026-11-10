@@ -14,7 +14,13 @@
     "git": "Git",
     "settings": "Configurações"
   },
+  "media": {
+    "actualSize": "Tamanho real",
+    "fit": "Ajustar à janela"
+  },
   "sidebar": {
+    "output": "Saída",
+    "revealPdf": "Mostrar o PDF compilado na pasta",
     "files": "Arquivos",
     "empty": "Nenhum projeto aberto."
   },
@@ -62,11 +68,25 @@
   },
   "pdf": {
     "title": "PDF",
-    "placeholder": "O PDF compilado aparecerá aqui."
+    "placeholder": "O PDF compilado aparecerá aqui.",
+    "loading": "Carregando PDF…",
+    "error": "Não foi possível abrir o PDF.",
+    "toolbar": "Barra do PDF",
+    "thumbnails": "Miniaturas",
+    "page": "Página {n}",
+    "goToPage": "Ir para a página",
+    "zoomIn": "Aumentar zoom",
+    "zoomOut": "Diminuir zoom",
+    "zoom": "Zoom",
+    "fitWidth": "Ajustar à largura",
+    "fitPage": "Ajustar à página",
+    "search": "Buscar no PDF",
+    "noMatches": "Sem resultados"
   },
   "bottom": {
     "problems": "Problemas",
     "log": "Log",
+    "close": "Fechar painel",
     "noProblems": "Nenhum problema."
   },
   "layout": {
@@ -85,10 +105,19 @@
     "spell": "Corretor",
     "notifications": "Notificações",
     "eolChange": "Alternar fim de linha (LF/CRLF)",
+    "zoom": "Zoom",
+    "zoomReset": "Restaurar zoom (100%)",
+    "encodingChange": "Alterar a codificação do arquivo",
+    "encodingReopen": "Reabrir com a codificação",
+    "encodingSave": "Salvar com a codificação",
     "encoding": "Codificação",
     "wordsDetail": "Contagem de palavras",
     "wordsBreakdown": "Texto: {words} · Títulos: {headers} · Math em linha: {inline} · Math display: {display}",
-    "beforeFirstSection": "(antes da primeira seção)"
+    "beforeFirstSection": "(antes da primeira seção)",
+    "autoCompile": "Compilação automática (clique para alternar)",
+    "auto": "Auto",
+    "on": "ligada",
+    "off": "desligada"
   },
   "palette": {
     "commandsPlaceholder": "Digite um comando…",
@@ -105,6 +134,11 @@
     "modeSplit": "Layout: editor e PDF lado a lado",
     "modeEditor": "Layout: somente editor",
     "modePdf": "Layout: somente PDF",
+    "openSettingsJson": "Abrir configurações (JSON)",
+    "zoomIn": "Aumentar zoom",
+    "zoomOut": "Diminuir zoom",
+    "zoomReset": "Restaurar zoom",
+    "revealPdf": "Mostrar o PDF compilado na pasta",
     "openSettings": "Abrir configurações",
     "toggleTheme": "Alternar tema claro/escuro",
     "openTexWizard": "Configurar o TeX…",
@@ -118,9 +152,16 @@
     "cycleAutosave": "Alternar modo de salvamento automático",
     "toggleEol": "Alternar fim de linha (LF/CRLF)",
     "gotoLine": "Ir para a linha…",
-    "searchProject": "Buscar no projeto"
+    "searchProject": "Buscar no projeto",
+    "compile": "Compilar",
+    "cancelCompile": "Cancelar compilação",
+    "toggleAutoCompile": "Alternar compilação automática",
+    "toggleShellEscape": "Alternar shell-escape (executa comandos do documento)",
+    "syncToPdf": "Mostrar a posição do cursor no PDF",
+    "toggleBoxWarnings": "Mostrar/ocultar avisos de caixas overfull/underfull"
   },
   "settings": {
+    "jsonDesktopOnly": "O arquivo de configurações só existe no app desktop.",
     "title": "Configurações",
     "search": "Buscar configuração…",
     "close": "Fechar",
@@ -142,7 +183,12 @@
     "saveFailed": "Não foi possível salvar as configurações.",
     "texWizard": "Configurar o TeX…",
     "texMirror": "Espelho CTAN (opcional)",
-    "texMirrorHint": "URL do espelho tlnet; vazio usa o automático."
+    "texMirrorHint": "URL do espelho tlnet; vazio usa o automático.",
+    "texAutoInstall": "Pacote faltante",
+    "texAutoInstallHint": "O que fazer quando a compilação precisa de um pacote que não está instalado.",
+    "autoInstallAsk": "Perguntar",
+    "autoInstallAuto": "Instalar automaticamente",
+    "autoInstallNever": "Nunca instalar"
   },
   "notify": {
     "center": "Central de notificações",
@@ -151,7 +197,9 @@
     "noTasks": "Nenhuma tarefa em andamento.",
     "cancel": "Cancelar",
     "dismiss": "Dispensar",
-    "clear": "Limpar"
+    "clear": "Limpar",
+    "open": "Abrir",
+    "openTask": "Abrir {title}"
   },
   "wizard": {
     "title": "Configuração do TeX",
@@ -213,7 +261,8 @@
       "packageNotFound": "O pacote não foi encontrado no repositório.",
       "permissionDenied": "Sem permissão para gravar na instalação do TeX.",
       "cancelled": "Operação cancelada.",
-      "unknown": "O gerenciador de pacotes falhou. Veja o log para detalhes."
+      "unknown": "O gerenciador de pacotes falhou. Veja o log para detalhes.",
+      "unavailable": "O gerenciador de pacotes (tlmgr) não está disponível nesta distribuição TeX. Instale o pacote manualmente."
     }
   },
   "installer": {
@@ -253,5 +302,121 @@
     "confirm": "Substituir em {count} arquivo(s)? Esta ação grava no disco.",
     "replaced": "Substituição feita em {count} arquivo(s).",
     "skippedDirty": "{count} arquivo(s) com alterações não salvas foram ignorados. Salve e tente de novo."
+  },
+  "compile": {
+    "run": "Compilar",
+    "cancel": "Cancelar",
+    "state": {
+      "idle": "Não compilado",
+      "running": "Compilando…",
+      "success": "Compilado",
+      "failed": "Erros",
+      "cancelled": "Cancelada",
+      "timedOut": "Tempo esgotado",
+      "error": "Falhou"
+    },
+    "timedOut": "A compilação excedeu o tempo limite (compile.timeout_secs no texlocal.toml).",
+    "notCompiled": "Compile o projeto para ver erros e avisos.",
+    "filters": "Filtros de problemas",
+    "filter": {
+      "kind": "Tipo de problema",
+      "all": "Todos",
+      "errors": "Erros",
+      "warnings": "Avisos",
+      "file": "Arquivo",
+      "allFiles": "Todos os arquivos",
+      "boxes": "Avisos de caixa"
+    },
+    "log": {
+      "search": "Buscar no log",
+      "noMatches": "Sem ocorrências",
+      "previous": "Ocorrência anterior",
+      "next": "Próxima ocorrência",
+      "source": "Origem do log",
+      "texLog": "Log do TeX",
+      "latexmk": "Saída do latexmk",
+      "empty": "Ainda não há log. Compile o projeto."
+    },
+    "shellEscape": {
+      "title": "Ativar shell-escape?",
+      "warning": "Com o shell-escape o documento pode executar comandos quaisquer no seu computador durante a compilação. Ative apenas em projetos de confiança (necessário para pacotes como minted). Ativar neste projeto?"
+    },
+    "sync": {
+      "noPosition": "Nenhuma posição correspondente encontrada. Compile o projeto e tente de novo.",
+      "unavailable": "Os dados do SyncTeX não estão disponíveis. Compile o projeto primeiro."
+    },
+    "error": {
+      "latexmkNotFound": "O latexmk não foi encontrado na instalação TeX selecionada. Configure o TeX de novo pela paleta de comandos.",
+      "mainNotFound": "O arquivo principal do projeto não foi encontrado. Confira project.main no texlocal.toml.",
+      "manifest": "O texlocal.toml é inválido. Corrija o arquivo e compile de novo.",
+      "busy": "Já existe uma compilação deste projeto em andamento.",
+      "io": "Não foi possível iniciar a compilação.",
+      "unavailable": "A compilação só está disponível no aplicativo desktop."
+    },
+    "explain": {
+      "undefinedControlSequence": "O comando não foi reconhecido. Verifique erros de digitação ou um \\usepackage faltando.",
+      "missingDollar": "Símbolos matemáticos (como _ ou ^) foram usados fora do modo matemático. Envolva a fórmula em $…$.",
+      "missingBrace": "Falta um {'{'} ou {'}'}. Confira se todas as chaves estão em pares.",
+      "extraBrace": "Há um {'}'} sobrando ou uma fórmula matemática ficou aberta.",
+      "tooManyBraces": "Há um {'}'} a mais do que o necessário.",
+      "runaway": "O argumento de um comando nunca foi fechado. Procure um {'}'} faltando acima.",
+      "paragraphEnded": "Apareceu uma linha em branco dentro do argumento de um comando. Remova a linha vazia.",
+      "misplacedAlignment": "O caractere & só vale em tabelas. Use \\& para imprimir um &.",
+      "missingNumber": "Era esperado um número aqui. Confira os argumentos do comando.",
+      "illegalParameter": "Em definições, use #1, #2… para os parâmetros (e ## dentro de definições aninhadas).",
+      "emergencyStop": "O LaTeX parou por causa do erro acima. Corrija e compile de novo.",
+      "fatalError": "A compilação foi abortada e nenhum PDF foi gerado. Corrija o primeiro erro da lista.",
+      "undefinedEnvironment": "Este ambiente não existe. Confira o nome ou carregue o pacote que o define.",
+      "environmentMismatch": "\\begin e \\end não combinam. Confira o aninhamento dos ambientes.",
+      "unicodeCharacter": "Este caractere não é aceito com a codificação atual. Use XeLaTeX/LuaLaTeX ou \\usepackage[utf8]{inputenc}.",
+      "fileNotFound": "Um arquivo ou pacote não foi encontrado. Confira o nome e o caminho; o pacote pode ser instalável.",
+      "preambleOnly": "Este comando só é permitido no preâmbulo (antes de \\begin{document}).",
+      "commandAlreadyDefined": "Já existe um comando com este nome. Use \\renewcommand ou escolha outro nome.",
+      "floatsLost": "Algumas figuras ou tabelas não puderam ser posicionadas. Tente [htbp] ou \\clearpage.",
+      "overfullBox": "Uma linha ficou larga demais para a margem. Reescreva o trecho ou adicione dicas de hifenização.",
+      "underfullBox": "Uma linha foi esticada demais (espaçamento solto). Em geral é inofensivo.",
+      "undefinedReferences": "Faltam destinos de \\ref ou \\cite. Compile de novo; se persistir, confira os labels e a bibliografia.",
+      "undefinedReference": "O label ainda não existe. Compile duas vezes ou confira o nome no \\label.",
+      "undefinedCitation": "A entrada bibliográfica não foi encontrada. Confira a chave no .bib e compile de novo.",
+      "rerunNeeded": "Os labels mudaram. Uma nova compilação corrige as referências cruzadas.",
+      "multiplyDefined": "O mesmo label foi definido mais de uma vez. Renomeie um deles.",
+      "fontShape": "O tamanho ou estilo de fonte pedido não existe; o LaTeX usou um substituto.",
+      "bibMissingEntry": "A chave citada não existe no arquivo .bib.",
+      "bibMissingDatabase": "O arquivo .bib não foi encontrado. Confira o nome em \\bibliography ou \\addbibresource.",
+      "bibNoCitations": "Nenhuma citação encontrada. Use \\cite no texto e \\bibliography no final.",
+      "bibSyntax": "Há um erro de sintaxe na entrada do .bib (vírgula, chave ou aspas faltando).",
+      "latexmkFailed": "O latexmk falhou antes de executar o TeX. Veja a saída na aba Log."
+    }
+  },
+  "resources": {
+    "title": "Recursos baixados",
+    "hint": "Arquivos baixados e instalados pelo TexLocal. Remover libera espaço em disco.",
+    "refresh": "Atualizar",
+    "loading": "Carregando…",
+    "empty": "Nenhum recurso baixado.",
+    "kind": {
+      "texTree": "TeX Live {year}",
+      "partial": "Instalação incompleta do TeX Live {year}",
+      "downloadCache": "Cache de downloads"
+    },
+    "inUse": "em uso",
+    "remove": "Remover",
+    "confirm": "Confirmar remoção",
+    "removing": "Removendo…",
+    "removed": "{name} removido.",
+    "removeFailed": "Não foi possível remover {name}.",
+    "listFailed": "Não foi possível listar os recursos.",
+    "total": "Total: {size}",
+    "busy": "Há uma instalação em andamento; a remoção fica indisponível até ela terminar."
+  },
+  "packages": {
+    "missing": "Falta o pacote: {names} | Faltam os pacotes: {names}",
+    "files": "Arquivos não encontrados: {files}",
+    "install": "Instalar e recompilar",
+    "installingShort": "Instalando…",
+    "ignore": "Ignorar",
+    "installing": "Instalando {names}",
+    "installed": "Instalado: {names}.",
+    "unresolved": "Não encontrei pacote do TeX Live para: {files}. Se for um arquivo seu, confira o nome e o caminho."
   }
 }

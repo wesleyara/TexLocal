@@ -123,7 +123,7 @@ const percent = computed(() =>
 
 <template>
   <div v-if="ui.wizardOpen" class="overlay" @mousedown.self="close">
-    <div class="dialog" role="dialog" aria-modal="true" :aria-label="t('wizard.title')">
+    <div class="app-dialog" role="dialog" aria-modal="true" :aria-label="t('wizard.title')">
       <header>
         <h1>{{ t('wizard.title') }}</h1>
         <button :aria-label="t('settings.close')" @click="close">×</button>
@@ -261,7 +261,7 @@ const percent = computed(() =>
   align-items: center;
   background: rgb(0 0 0 / 45%);
 }
-.dialog {
+.app-dialog {
   width: min(560px, 92vw);
   max-height: 80vh;
   display: flex;

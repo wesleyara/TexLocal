@@ -9,6 +9,6 @@ export default defineConfig({
   plugins: [vue()],
   define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   clearScreen: false,
-  server: { port: 1420, strictPort: true },
+  server: { port: 1420, strictPort: true, watch: { ignored: ['**/src-tauri/target/**'] } },
   test: { environment: 'jsdom', globals: false },
 })

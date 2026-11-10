@@ -1,6 +1,8 @@
 export type ThemeSetting = 'system' | 'dark' | 'light'
 export type LocaleSetting = 'auto' | 'pt-BR' | 'en'
 export type TexSource = 'unset' | 'system' | 'managed' | 'skipped'
+/** Pacote faltante na compilação: perguntar, instalar sozinho ou nunca. */
+export type AutoInstall = 'ask' | 'auto' | 'never'
 
 export interface Settings {
   theme: ThemeSetting
@@ -13,18 +15,27 @@ export interface Settings {
   texBinDir?: string
   /** Espelho CTAN fixado (vazio = automático). */
   texMirror?: string
+  texAutoInstall: AutoInstall
+  /** Zoom da interface (cada passo = 20%); 0 = 100%. */
+  zoomLevel: number
 }
+
+export const ZOOM_MIN = -4
+export const ZOOM_MAX = 8
 
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'dark',
   locale: 'auto',
   keybindings: {},
   texSource: 'unset',
+  texAutoInstall: 'ask',
+  zoomLevel: 0,
 }
 
 const THEMES: ThemeSetting[] = ['system', 'dark', 'light']
 const LOCALES: LocaleSetting[] = ['auto', 'pt-BR', 'en']
 const TEX_SOURCES: TexSource[] = ['unset', 'system', 'managed', 'skipped']
+const AUTO_INSTALLS: AutoInstall[] = ['ask', 'auto', 'never']
 
 /** Valida um valor desconhecido (ex.: JSON editado à mão). Lança Error com mensagem legível. */
 export function validateSettings(value: unknown): Settings {
@@ -46,6 +57,19 @@ export function validateSettings(value: unknown): Settings {
   if (!TEX_SOURCES.includes(texSource as TexSource)) {
     throw new Error(`texSource inválido: ${String(texSource)}`)
   }
+  const texAutoInstall = v.texAutoInstall ?? DEFAULT_SETTINGS.texAutoInstall
+  if (!AUTO_INSTALLS.includes(texAutoInstall as AutoInstall)) {
+    throw new Error(`texAutoInstall inválido: ${String(texAutoInstall)}`)
+  }
+  const zoomLevel = v.zoomLevel ?? DEFAULT_SETTINGS.zoomLevel
+  if (
+    typeof zoomLevel !== 'number' ||
+    !Number.isInteger(zoomLevel) ||
+    zoomLevel < ZOOM_MIN ||
+    zoomLevel > ZOOM_MAX
+  ) {
+    throw new Error(`zoomLevel inválido: ${String(zoomLevel)}`)
+  }
   if (v.texBinDir !== undefined && typeof v.texBinDir !== 'string') {
     throw new Error('texBinDir deve ser texto')
   }
@@ -64,6 +88,8 @@ export function validateSettings(value: unknown): Settings {
     locale: locale as LocaleSetting,
     keybindings: { ...(kb as Record<string, string>) },
     texSource: texSource as TexSource,
+    texAutoInstall: texAutoInstall as AutoInstall,
+    zoomLevel,
     ...(v.texBinDir !== undefined ? { texBinDir: v.texBinDir as string } : {}),
     ...(v.texMirror !== undefined ? { texMirror: v.texMirror as string } : {}),
   }

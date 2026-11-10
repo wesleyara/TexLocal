@@ -31,7 +31,7 @@ async function confirm() {
 <template>
   <div v-if="refs.renaming !== null" class="overlay" @mousedown.self="refs.renaming = null">
     <form
-      class="dialog"
+      class="app-dialog"
       role="dialog"
       aria-modal="true"
       :aria-label="t('editor.rename.title')"
@@ -59,7 +59,7 @@ async function confirm() {
   padding-top: 15vh;
   background: rgb(0 0 0 / 40%);
 }
-.dialog {
+.app-dialog {
   width: 380px;
   padding: var(--space-4);
   background: var(--bg-elevated);

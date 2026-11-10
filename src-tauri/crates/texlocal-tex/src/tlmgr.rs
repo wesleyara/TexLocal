@@ -73,6 +73,8 @@ pub enum TlmgrErrorKind {
     PackageNotFound,
     PermissionDenied,
     Cancelled,
+    /// Esta distribuição não tem `tlmgr` (ex.: MiKTeX).
+    Unavailable,
     Unknown,
 }
 
@@ -84,6 +86,7 @@ impl TlmgrErrorKind {
             Self::PackageNotFound => "tlmgr.error.packageNotFound",
             Self::PermissionDenied => "tlmgr.error.permissionDenied",
             Self::Cancelled => "tlmgr.error.cancelled",
+            Self::Unavailable => "tlmgr.error.unavailable",
             Self::Unknown => "tlmgr.error.unknown",
         }
     }
@@ -129,6 +132,13 @@ pub fn classify_error(output: &str) -> TlmgrErrorKind {
         TlmgrErrorKind::PackageNotFound
     } else {
         TlmgrErrorKind::Unknown
+    }
+}
+
+impl TlmgrError {
+    /// O `tlmgr` não foi encontrado na distribuição escolhida.
+    pub fn unavailable(details: String) -> Self {
+        error(TlmgrErrorKind::Unavailable, details)
     }
 }
 

@@ -55,19 +55,33 @@ export const useUiStore = defineStore('ui', () => {
   /** Incrementa para pedir foco no campo de busca do projeto. */
   const searchFocusTick = ref(0)
 
+  function save(id: string) {
+    try {
+      localStorage.setItem(storageKey(id), JSON.stringify(layout))
+    } catch {
+      // ignora falhas de persistência
+    }
+  }
+
+  let persistTimer: ReturnType<typeof setTimeout> | undefined
   watch(
     layout,
     () => {
-      try {
-        localStorage.setItem(storageKey(project.value), JSON.stringify(layout))
-      } catch {
-        // ignora falhas de persistência
-      }
+      // Debounce: arrastar divisórias muda o layout dezenas de vezes por segundo.
+      clearTimeout(persistTimer)
+      persistTimer = setTimeout(() => save(project.value), 200)
     },
     { deep: true },
   )
+  // Não perde o último ajuste se a janela fechar dentro da janela do debounce.
+  if (typeof window !== 'undefined') {
+    window.addEventListener('pagehide', () => save(project.value))
+  }
 
   function setProject(id: string) {
+    // Grava o layout do projeto atual antes de trocar, sem esperar o debounce.
+    clearTimeout(persistTimer)
+    save(project.value)
     project.value = id
     Object.assign(layout, load(id))
   }

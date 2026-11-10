@@ -1,126 +1,111 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { relativePath } from '../project/api'
-import { labelProblems } from '../project/model'
-import { useEditorStore } from '../stores/editor'
-import { useProjectStore } from '../stores/project'
-import { useRefsStore } from '../stores/refs'
+import { useCompileStore } from '../stores/compile'
+import { useUiStore } from '../stores/ui'
+import AppIcon from './AppIcon.vue'
+import ProblemsPanel from './ProblemsPanel.vue'
+import RawLogPanel from './RawLogPanel.vue'
 
 const { t } = useI18n()
-const editor = useEditorStore()
-const project = useProjectStore()
-const refs = useRefsStore()
-
-const problems = computed(() => (editor.active ? labelProblems(project.view, editor.active) : []))
-
-function rel(path: string) {
-  return project.root ? relativePath(project.root, path) : path
-}
+const compile = useCompileStore()
+const ui = useUiStore()
+const tab = ref<'problems' | 'log'>('problems')
 </script>
 
 <template>
   <div class="bottom">
-    <h2>{{ t('bottom.problems') }}</h2>
-    <p v-if="!problems.length && !project.view.missing.length" class="muted">
-      {{ t('bottom.noProblems') }}
-    </p>
-    <ul>
-      <li
-        v-for="(p, i) in problems"
-        :key="i"
-        class="row"
-        :class="p.severity"
-        tabindex="0"
-        @click="
-          editor.active &&
-          editor.openFile(editor.active, { line: p.line, col: p.col, endCol: p.endCol })
-        "
+    <div class="tabs" role="tablist">
+      <button
+        role="tab"
+        :aria-selected="tab === 'problems'"
+        :class="{ active: tab === 'problems' }"
+        @click="tab = 'problems'"
       >
-        <span class="sev" aria-hidden="true">{{ p.severity === 'error' ? '✖' : '▲' }}</span>
-        {{ t(p.messageKey, p.params) }}
-        <span class="loc">{{ p.line + 1 }}:{{ p.col + 1 }}</span>
-      </li>
-      <li v-for="m in project.view.missing" :key="m" class="row warning">
-        <span class="sev" aria-hidden="true">▲</span>
-        {{ t('editor.problem.missingFile', { name: m }) }}
-      </li>
-    </ul>
-
-    <template v-if="refs.name">
-      <h2>
-        {{ t('editor.usages', { name: refs.name }) }}
-        <button class="x" :aria-label="t('settings.close')" @click="refs.clear()">×</button>
-      </h2>
-      <ul>
-        <li
-          v-if="refs.definition"
-          class="row"
-          tabindex="0"
-          @click="editor.openFile(refs.definition.file, refs.definition)"
-        >
-          <strong>{{ t('editor.definition') }}</strong> {{ rel(refs.definition.file) }}:{{
-            refs.definition.line + 1
-          }}
-        </li>
-        <li
-          v-for="(u, i) in refs.usages"
-          :key="i"
-          class="row"
-          tabindex="0"
-          @click="editor.openFile(u.file, u)"
-        >
-          {{ rel(u.file) }}:{{ u.line + 1 }}
-        </li>
-        <li v-if="!refs.usages.length" class="muted">{{ t('editor.noUsages') }}</li>
-      </ul>
-    </template>
+        {{ t('bottom.problems') }}
+        <span v-if="compile.counts.errors" class="badge error">{{ compile.counts.errors }}</span>
+        <span v-if="compile.counts.warnings" class="badge">{{ compile.counts.warnings }}</span>
+      </button>
+      <button
+        role="tab"
+        :aria-selected="tab === 'log'"
+        :class="{ active: tab === 'log' }"
+        @click="tab = 'log'"
+      >
+        {{ t('bottom.log') }}
+      </button>
+      <span class="grow" />
+      <button
+        class="close"
+        :title="t('bottom.close')"
+        :aria-label="t('bottom.close')"
+        @click="ui.layout.bottomVisible = false"
+      >
+        <AppIcon name="close" :size="14" />
+      </button>
+    </div>
+    <div class="content" role="tabpanel">
+      <ProblemsPanel v-if="tab === 'problems'" />
+      <RawLogPanel v-else />
+    </div>
   </div>
 </template>
 
 <style scoped>
-h2 {
-  margin: 0 0 var(--space-2);
+.bottom {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+.tabs {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+.tabs button {
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 0 0 2px;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-muted);
-}
-h2:not(:first-child) {
-  margin-top: var(--space-3);
-}
-ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.row {
-  padding: 2px var(--space-2);
   cursor: pointer;
-  border-radius: var(--radius-sm);
 }
-.row:hover {
+.tabs .grow {
+  flex: 1;
+}
+.tabs button.close {
+  display: inline-flex;
+  align-items: center;
+  border-bottom: 0;
+  padding: 2px;
+  border-radius: var(--radius);
+}
+.tabs button.close:hover {
   background: var(--bg-hover);
+  color: var(--text);
 }
-.error .sev {
-  color: var(--danger);
+.tabs button.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
 }
-.warning .sev {
-  color: var(--text-muted);
+.badge {
+  margin-left: 4px;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: var(--bg-hover);
+  color: var(--text);
 }
-.loc {
-  margin-left: var(--space-2);
-  color: var(--text-muted);
+.badge.error {
+  background: var(--danger);
+  color: var(--accent-contrast);
 }
-.muted {
-  margin: 0;
-  color: var(--text-muted);
-}
-.x {
-  margin-left: var(--space-2);
-  background: none;
-  border: 0;
-  color: inherit;
-  cursor: pointer;
+.content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
 }
 </style>

@@ -17,6 +17,18 @@ export interface Tab {
   bom: boolean
   /** O fim de linha foi alterado e ainda não gravado. */
   eolChanged: boolean
+  /** Arquivos que não são texto (imagem/PDF) abrem num visualizador, sem buffer. */
+  media?: MediaKind
+}
+
+export type MediaKind = 'image' | 'pdf'
+
+const IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg'])
+
+export function mediaKindOf(path: string): MediaKind | undefined {
+  const ext = path.slice(path.lastIndexOf('.') + 1).toLowerCase()
+  if (ext === 'pdf') return 'pdf'
+  return IMAGE_EXTENSIONS.has(ext) ? 'image' : undefined
 }
 
 export type AutosaveMode = 'off' | 'delay' | 'blur' | 'both'
@@ -57,6 +69,9 @@ export const useEditorStore = defineStore('editor', () => {
   const prefs = ref<EditorPrefs>(loadPrefs())
   const reveal = ref<Reveal | null>(null)
   const reloadTick = ref(0)
+  /** Incrementam a cada edição / gravação bem-sucedida; a compilação automática observa. */
+  const change = ref({ tick: 0, path: '' })
+  const saved = ref({ tick: 0, path: '' })
   const cursor = ref({ line: 1, col: 1, selectionWords: null as number | null })
   let nonce = 0
   const timers = new Map<string, ReturnType<typeof setTimeout>>()
@@ -96,7 +111,20 @@ export const useEditorStore = defineStore('editor', () => {
 
   async function openFile(path: string, at?: { line: number; col?: number; endCol?: number }) {
     let tab = find(path)
-    if (!tab) {
+    const media = mediaKindOf(path)
+    if (!tab && media) {
+      tab = {
+        path,
+        name: baseName(path),
+        dirty: false,
+        eol: 'lf',
+        encoding: 'utf8',
+        bom: false,
+        eolChanged: false,
+        media,
+      }
+      tabs.value.push(tab)
+    } else if (!tab) {
       const content = await fileRead(path)
       buffers.setPending(path, content.text)
       tab = {
@@ -147,6 +175,7 @@ export const useEditorStore = defineStore('editor', () => {
       buffers.markSaved(tab.path)
       tab.eolChanged = false
       tab.dirty = buffers.isDirty(tab.path)
+      saved.value = { tick: saved.value.tick + 1, path: tab.path }
       return true
     } catch (e) {
       useNotificationsStore().notify(
@@ -166,6 +195,7 @@ export const useEditorStore = defineStore('editor', () => {
     const tab = find(path)
     if (!tab) return
     tab.dirty = buffers.isDirty(tab.path) || tab.eolChanged
+    change.value = { tick: change.value.tick + 1, path: tab.path }
     const k = pathKey(path)
     clearTimeout(timers.get(k))
     if (tab.dirty && (prefs.value.autosave === 'delay' || prefs.value.autosave === 'both')) {
@@ -225,6 +255,36 @@ export const useEditorStore = defineStore('editor', () => {
     onDocChanged(path)
   }
 
+  /**
+   * Troca a codificação da aba. Sem alterações pendentes, reabre o arquivo do disco lendo-o
+   * com a codificação escolhida (corrige acentos errados); com alterações, só passa a gravar
+   * nessa codificação.
+   */
+  async function reopenWithEncoding(path: string, encoding: Encoding) {
+    const tab = find(path)
+    if (!tab || tab.dirty) return
+    try {
+      const content = await fileRead(tab.path, encoding)
+      buffers.drop(tab.path)
+      buffers.setPending(tab.path, content.text)
+      tab.encoding = content.encoding
+      tab.eol = content.eol
+      tab.bom = content.bom
+      reloadTick.value++
+    } catch (e) {
+      useNotificationsStore().notify('error', String(e))
+    }
+  }
+
+  function saveWithEncoding(path: string, encoding: Encoding) {
+    const tab = find(path)
+    if (!tab || tab.encoding === encoding) return
+    tab.encoding = encoding
+    tab.bom = false
+    tab.eolChanged = true
+    onDocChanged(path)
+  }
+
   /** Reabre as abas do projeto atual (ignora arquivos que sumiram). */
   async function restoreSession() {
     const root = useProjectStore().root
@@ -274,6 +334,8 @@ export const useEditorStore = defineStore('editor', () => {
     prefs,
     reveal,
     reloadTick,
+    change,
+    saved,
     cursor,
     languageId,
     setPrefs,
@@ -288,6 +350,8 @@ export const useEditorStore = defineStore('editor', () => {
     closeToRight,
     move,
     setEol,
+    reopenWithEncoding,
+    saveWithEncoding,
     restoreSession,
     reset,
     reloadFromDisk,

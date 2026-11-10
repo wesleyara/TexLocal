@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { currentOutlineIndex } from '../project/model'
 import { useEditorStore } from '../stores/editor'
 import { useProjectStore } from '../stores/project'
+import AppIcon from './AppIcon.vue'
 
 const { t } = useI18n()
 const project = useProjectStore()
@@ -13,7 +14,7 @@ const current = computed(() =>
   editor.active ? currentOutlineIndex(project.outline, editor.active, editor.cursor.line - 1) : -1,
 )
 
-const GLYPH = { section: '§', figure: '▣', table: '▦' } as const
+const ICON = { section: 'format-section', figure: 'image-outline', table: 'table' } as const
 
 function go(i: number) {
   const it = project.outline[i]
@@ -38,7 +39,7 @@ function go(i: number) {
         @click="go(i)"
         @keydown.enter="go(i)"
       >
-        <span aria-hidden="true" class="glyph">{{ GLYPH[it.kind] }}</span>
+        <span class="glyph"><AppIcon :name="ICON[it.kind]" :size="14" /></span>
         {{ it.title }}
       </li>
     </ul>

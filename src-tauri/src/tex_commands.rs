@@ -8,8 +8,11 @@ use serde::Serialize;
 use tauri::{AppHandle, Emitter, State};
 use texlocal_tex::detect::{self, Distribution};
 use texlocal_tex::installer::{InstallError, InstallErrorKind, InstallResult, Installer};
+use texlocal_tex::logparse::{choose_package, parse_search_output, PackageIndex};
 use texlocal_tex::manifest::{self, Manifest};
 use texlocal_tex::profile::Profile;
+use texlocal_tex::resources::{self, Resource};
+use texlocal_tex::tlmgr::{Tlmgr, TlmgrError, TlmgrOp};
 use texlocal_tex::{disk, paths};
 
 #[derive(Serialize)]
@@ -139,5 +142,118 @@ pub async fn tex_install(
 
 #[tauri::command]
 pub fn tex_install_cancel(state: State<'_, InstallState>) {
+    state.cancel.store(true, Ordering::SeqCst);
+}
+
+/// Recursos baixados pelo app (instalações do TeX Live e cache), com tamanho em disco.
+#[tauri::command]
+pub async fn resources_list() -> Result<Vec<Resource>, String> {
+    blocking(|| {
+        let root = paths::data_root().ok_or("diretório de dados indisponível")?;
+        Ok(resources::list(&root))
+    })
+    .await
+}
+
+/// Remove um recurso listado por `resources_list`. Recusa enquanto uma instalação roda.
+#[tauri::command]
+pub async fn resources_remove(state: State<'_, InstallState>, id: String) -> Result<(), String> {
+    if state.running.load(Ordering::SeqCst) {
+        return Err("instalação em andamento".into());
+    }
+    blocking(move || {
+        let root = paths::data_root().ok_or("diretório de dados indisponível")?;
+        resources::remove(&root, &id).map(|_| ())
+    })
+    .await
+}
+
+// ───────────────────────── pacotes faltantes (TL-208 / TL-407) ─────────────────────────
+
+/// Cancelamento da instalação de pacotes em andamento.
+#[derive(Default)]
+pub struct PackageState {
+    cancel: Arc<AtomicBool>,
+}
+
+fn locate_tlmgr(bin_dir: Option<&str>) -> Result<PathBuf, TlmgrError> {
+    let dir_hint = bin_dir.filter(|d| !d.trim().is_empty());
+    let found = match dir_hint {
+        Some(dir) => detect::find_executable(std::path::Path::new(dir), "tlmgr"),
+        None => std::env::var_os("PATH").and_then(|path| {
+            std::env::split_paths(&path).find_map(|d| detect::find_executable(&d, "tlmgr"))
+        }),
+    };
+    found.ok_or_else(|| TlmgrError::unavailable(dir_hint.unwrap_or("PATH").to_owned()))
+}
+
+fn index_path() -> Option<PathBuf> {
+    paths::data_root().map(|r| r.join("package-index.json"))
+}
+
+/// Descobre o pacote do TeX Live que contém `file` (ex.: `abntex2.cls` -> `abntex2`).
+/// Usa o cache local e só consulta o `tlmgr` (rede) quando preciso.
+#[tauri::command]
+pub async fn tex_resolve_package(
+    bin_dir: Option<String>,
+    usermode: bool,
+    file: String,
+) -> Result<Option<String>, TlmgrError> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let path = index_path();
+        let mut index = path
+            .as_ref()
+            .and_then(|p| std::fs::read_to_string(p).ok())
+            .map(|j| PackageIndex::from_json(&j))
+            .unwrap_or_default();
+        if let Some(hit) = index.get(&file) {
+            return Ok(Some(hit.to_owned()));
+        }
+        let tlmgr = Tlmgr::new(locate_tlmgr(bin_dir.as_deref())?, usermode);
+        let out = tlmgr.run(
+            &TlmgrOp::SearchFile(file.clone()),
+            &AtomicBool::new(false),
+            &mut |_| {},
+        )?;
+        let candidates = parse_search_output(&out, &file);
+        let chosen = choose_package(&candidates).cloned();
+        if let (Some(pkg), Some(p)) = (&chosen, &path) {
+            index.insert(&file, pkg);
+            if let Some(parent) = p.parent() {
+                let _ = std::fs::create_dir_all(parent);
+            }
+            let _ = std::fs::write(p, index.to_json());
+        }
+        Ok(chosen)
+    })
+    .await
+    .map_err(|e| TlmgrError::unavailable(e.to_string()))?
+}
+
+/// Instala pacotes com o `tlmgr`, emitindo `tlmgr-progress` a cada pacote.
+#[tauri::command]
+pub async fn tex_install_packages(
+    app: AppHandle,
+    state: State<'_, PackageState>,
+    bin_dir: Option<String>,
+    usermode: bool,
+    packages: Vec<String>,
+) -> Result<(), TlmgrError> {
+    state.cancel.store(false, Ordering::SeqCst);
+    let cancel = Arc::clone(&state.cancel);
+    tauri::async_runtime::spawn_blocking(move || {
+        let tlmgr = Tlmgr::new(locate_tlmgr(bin_dir.as_deref())?, usermode);
+        tlmgr
+            .run(&TlmgrOp::Install(packages), &cancel, &mut |p| {
+                let _ = app.emit("tlmgr-progress", p);
+            })
+            .map(|_| ())
+    })
+    .await
+    .map_err(|e| TlmgrError::unavailable(e.to_string()))?
+}
+
+#[tauri::command]
+pub fn tex_install_packages_cancel(state: State<'_, PackageState>) {
     state.cancel.store(true, Ordering::SeqCst);
 }

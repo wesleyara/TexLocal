@@ -57,5 +57,20 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   }
 
-  return { global, project, effective, loaded, load, update }
+  /** Caminho do `settings.json` (só no app desktop). */
+  async function filePath(): Promise<string | null> {
+    return isTauri() ? invoke<string>('settings_file') : null
+  }
+
+  /** Recarrega do disco depois de o usuário editar o JSON; devolve a mensagem de erro, se houver. */
+  async function reload(): Promise<string | null> {
+    try {
+      global.value = await readGlobal()
+      return null
+    } catch (e) {
+      return String(e)
+    }
+  }
+
+  return { global, project, effective, loaded, load, update, filePath, reload }
 })

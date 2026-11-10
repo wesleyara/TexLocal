@@ -4,7 +4,12 @@ import { useNotificationsStore } from '../stores/notifications'
 
 const { t } = useI18n()
 const n = useNotificationsStore()
-defineEmits<{ close: [] }>()
+const emit = defineEmits<{ close: [] }>()
+
+function openTask(open: () => void) {
+  open()
+  emit('close')
+}
 </script>
 
 <template>
@@ -20,6 +25,7 @@ defineEmits<{ close: [] }>()
       <li v-for="task in n.tasks" :key="task.id">
         <span>{{ task.title }}</span>
         <progress :value="task.progress ?? undefined" max="1" />
+        <button v-if="task.open" @click="openTask(task.open)">{{ t('notify.open') }}</button>
         <button v-if="task.cancel" @click="n.cancelTask(task.id)">{{ t('notify.cancel') }}</button>
       </li>
     </ul>

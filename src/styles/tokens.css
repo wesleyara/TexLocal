@@ -45,8 +45,9 @@
 }
 
 :root {
-  --font-ui: system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, Consolas, monospace;
+  --font-ui: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Barlow', 'Inter Variable', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'Cascadia Code', Consolas, monospace;
   --font-size: 13px;
   --space-1: 4px;
   --space-2: 8px;
@@ -75,6 +76,26 @@ body {
   color: var(--text);
 }
 
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+kbd,
+code,
+pre {
+  font-family: var(--font-mono);
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
 button {
   font: inherit;
   color: inherit;
@@ -83,4 +104,14 @@ button {
 :focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 1px;
+}
+
+/* Durante o arrasto de divisórias: sem seleção de texto e sem eventos nos painéis. */
+.is-resizing,
+.is-resizing * {
+  user-select: none;
+}
+.is-resizing .viewer,
+.is-resizing .cm-editor {
+  pointer-events: none;
 }

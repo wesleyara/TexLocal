@@ -13,6 +13,7 @@ import { useEditorStore } from '../stores/editor'
 import { useNotificationsStore } from '../stores/notifications'
 import { useProjectStore } from '../stores/project'
 import { useUiStore } from '../stores/ui'
+import { isTauri } from '../tauri'
 
 const { t } = useI18n()
 const project = useProjectStore()
@@ -63,12 +64,32 @@ async function run() {
   }
 }
 
+/**
+ * Confirmação nativa. No app desktop o `window.confirm` é substituído por uma versão assíncrona
+ * (devolve uma Promise, sempre "verdadeira"), então a substituição rodava sem esperar o "OK".
+ */
+async function confirmReplace(message: string): Promise<boolean> {
+  if (isTauri()) {
+    const { ask } = await import('@tauri-apps/plugin-dialog')
+    return ask(message, { title: t('search.title'), kind: 'warning' })
+  }
+  return window.confirm(message)
+}
+
+// A prévia da substituição vem do backend: refaz a busca quando o texto novo muda.
+let previewTimer: ReturnType<typeof setTimeout> | undefined
+watch(replacement, () => {
+  clearTimeout(previewTimer)
+  if (!searched.value || !pattern.value) return
+  previewTimer = setTimeout(() => void run(), 250)
+})
+
 async function replaceIn(files: string[]) {
   const dirty = files.filter((f) => editor.tabs.some((tab) => tab.dirty && samePath(tab.path, f)))
   const safe = files.filter((f) => !dirty.includes(f))
   if (dirty.length) notify.notify('info', t('search.skippedDirty', { count: dirty.length }), 8000)
   if (!safe.length) return
-  if (!window.confirm(t('search.confirm', { count: safe.length }))) return
+  if (!(await confirmReplace(t('search.confirm', { count: safe.length })))) return
   try {
     const changed = await projectReplace(query(), effectiveReplacement(), safe)
     for (const f of changed) await editor.reloadFromDisk(f)
@@ -77,6 +98,37 @@ async function replaceIn(files: string[]) {
     await run()
   } catch (e) {
     notify.notify('error', String(e))
+  }
+}
+
+const showPreview = (m: { replaced: string | null }) => !!replacement.value && m.replaced !== null
+
+/** Arquivos recolhidos na lista de resultados. */
+const collapsed = ref(new Set<string>())
+function toggleFile(path: string) {
+  const next = new Set(collapsed.value)
+  if (!next.delete(path)) next.add(path)
+  collapsed.value = next
+}
+
+function splitPath(path: string): { dir: string; name: string } {
+  const rel = project.root ? relativePath(project.root, path) : path
+  const i = rel.lastIndexOf('/')
+  return i < 0 ? { dir: '', name: rel } : { dir: rel.slice(0, i), name: rel.slice(i + 1) }
+}
+
+/** Trecho da linha em torno do achado, para caber numa linha da barra lateral. */
+function snippet(m: { col: number; endCol: number; text: string }) {
+  const text = m.text
+  const lead = text.length - text.trimStart().length
+  const start = Math.min(Math.max(m.col, lead), text.length)
+  const end = Math.min(Math.max(m.endCol, start), text.length)
+  const from = Math.max(lead, start - 28)
+  return {
+    cut: from > lead,
+    before: text.slice(from, start),
+    hit: text.slice(start, end),
+    after: text.slice(end).trimEnd(),
   }
 }
 
@@ -129,16 +181,24 @@ watch(
       {{ t('search.summary', { matches: total, files: results.length }) }}
     </p>
     <ul class="results">
-      <li v-for="f in results" :key="f.path">
+      <li v-for="f in results" :key="f.path" class="group">
         <div class="file">
-          <span class="fname" :title="f.path">{{
-            project.root ? relativePath(project.root, f.path) : f.path
-          }}</span>
+          <button
+            class="head"
+            :title="f.path"
+            :aria-expanded="!collapsed.has(f.path)"
+            @click="toggleFile(f.path)"
+          >
+            <span class="chev" aria-hidden="true">{{ collapsed.has(f.path) ? '▸' : '▾' }}</span>
+            <span class="fname">{{ splitPath(f.path).name }}</span>
+            <span v-if="splitPath(f.path).dir" class="fdir">{{ splitPath(f.path).dir }}</span>
+            <span class="count">{{ f.matches.length }}</span>
+          </button>
           <button class="small" :title="t('search.replaceFile')" @click="replaceIn([f.path])">
             ⇄
           </button>
         </div>
-        <ul>
+        <ul v-show="!collapsed.has(f.path)">
           <li
             v-for="(m, i) in f.matches"
             :key="i"
@@ -148,9 +208,14 @@ watch(
             @keydown.enter="openMatch(f.path, m)"
           >
             <span class="ln">{{ m.line + 1 }}</span>
-            <span class="txt">{{ m.text.trim() }}</span>
-            <span v-if="replacement && m.replaced !== null" class="new"
-              >→ {{ m.replaced.trim() }}</span
+            <span class="txt" :title="m.text.trim()"
+              ><template v-if="snippet(m).cut">…</template>{{ snippet(m).before
+              }}<mark :class="{ old: showPreview(m) }">{{ snippet(m).hit }}</mark
+              ><ins v-if="showPreview(m) && !useRegex">{{ replacement }}</ins
+              >{{ snippet(m).after }}</span
+            >
+            <span v-if="showPreview(m) && useRegex" class="new" :title="m.replaced?.trim()"
+              >→ {{ m.replaced?.trim() }}</span
             >
           </li>
         </ul>
@@ -219,45 +284,104 @@ ul {
   padding: 0;
   list-style: none;
 }
-.results > li {
+.group {
   margin-top: var(--space-2);
 }
 .file {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-weight: 600;
+  gap: var(--space-1);
+  padding: 2px 0;
+  position: sticky;
+  top: 0;
+  background: var(--bg-panel);
+}
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  min-width: 0;
+  flex: 1;
+  padding: 2px 0;
+  background: none;
+  border: 0;
+  text-align: left;
+}
+.chev {
+  width: 12px;
+  color: var(--text-muted);
+  flex: none;
 }
 .fname {
+  font-weight: 600;
+  white-space: nowrap;
+  flex: none;
+}
+.fdir {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+.count {
+  margin-left: auto;
+  flex: none;
+  padding: 0 6px;
+  border-radius: 8px;
+  background: var(--bg-hover);
+  color: var(--text-muted);
+  font-size: 11px;
 }
 .match {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  padding: 2px 4px;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  column-gap: var(--space-2);
+  padding: 2px 4px 2px 16px;
   border-radius: var(--radius-sm);
   cursor: pointer;
 }
-.match:hover {
+.match:hover,
+.match:focus-visible {
   background: var(--bg-hover);
 }
 .ln {
   color: var(--text-muted);
-  min-width: 24px;
   text-align: right;
+  font-size: 11px;
+  line-height: 18px;
 }
-.txt {
+.txt,
+.new {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: pre;
   font-family: var(--font-mono);
   font-size: 12px;
+  line-height: 18px;
+}
+mark {
+  padding: 0 1px;
+  border-radius: 2px;
+  background: rgb(255 200 0 / 35%);
+  color: inherit;
+}
+ins {
+  padding: 0 1px;
+  border-radius: 2px;
+  background: rgb(80 200 120 / 30%);
+  color: inherit;
+  text-decoration: none;
+}
+mark.old {
+  background: rgb(255 90 90 / 30%);
+  text-decoration: line-through;
 }
 .new {
-  width: 100%;
-  padding-left: 32px;
-  font-family: var(--font-mono);
-  font-size: 12px;
+  grid-column: 2;
   color: var(--success);
 }
 </style>

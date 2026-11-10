@@ -38,13 +38,15 @@ fn kind_of(name: &str) -> MissingKind {
 pub fn find_missing_files(log: &str) -> Vec<MissingFile> {
     let patterns = [
         // ! LaTeX Error: File `siunitx.sty' not found.
+        // ./main.tex:5: LaTeX Error: File `siunitx.sty' not found.   (com -file-line-error)
         (
-            Regex::new(r"! LaTeX Error: File [`'‘]([^'’\s]+)['’] not found").expect("regex"),
+            Regex::new(r"(?:! |\S+:\d+: )LaTeX Error: File [`'‘]([^'’\s]+)['’] not found")
+                .expect("regex"),
             "",
         ),
         // ! I can't find file `foo.def'.
         (
-            Regex::new(r"! I can't find file [`'‘]([^'’\s]+)['’]").expect("regex"),
+            Regex::new(r"(?:! |\S+:\d+: )I can't find file [`'‘]([^'’\s]+)['’]").expect("regex"),
             "",
         ),
         // I couldn't open style file abntex2-alf.bst
@@ -167,6 +169,16 @@ I couldn't open style file abntex2-alf.bst
         assert_eq!(found[1].kind, MissingKind::Cls);
         assert_eq!(found[2].kind, MissingKind::Font);
         assert_eq!(found[3].kind, MissingKind::Bst);
+    }
+
+    #[test]
+    fn file_line_error_format_is_recognized() {
+        let log = "./main.tex:2: LaTeX Error: File `siunitx.sty' not found.\n./a/b.tex:9: I can't find file `foo.def'.";
+        let names: Vec<_> = find_missing_files(log)
+            .into_iter()
+            .map(|f| f.name)
+            .collect();
+        assert_eq!(names, ["siunitx.sty", "foo.def"]);
     }
 
     #[test]

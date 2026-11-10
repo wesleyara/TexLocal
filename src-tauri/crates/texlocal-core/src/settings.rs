@@ -8,6 +8,9 @@ use serde::{Deserialize, Serialize};
 const THEMES: [&str; 3] = ["system", "dark", "light"];
 const LOCALES: [&str; 3] = ["auto", "pt-BR", "en"];
 const TEX_SOURCES: [&str; 4] = ["unset", "system", "managed", "skipped"];
+const AUTO_INSTALL: [&str; 3] = ["ask", "auto", "never"];
+/// Nível de zoom da interface (como `window.zoomLevel` do VS Code): cada passo = 20%.
+pub const ZOOM_RANGE: std::ops::RangeInclusive<i32> = -4..=8;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
@@ -25,6 +28,12 @@ pub struct Settings {
     /// Espelho CTAN fixado pelo usuário (vazio = automático).
     #[serde(rename = "texMirror", skip_serializing_if = "Option::is_none")]
     pub tex_mirror: Option<String>,
+    /// Pacote faltante na compilação: `ask` (perguntar), `auto` (instalar sozinho) ou `never`.
+    #[serde(rename = "texAutoInstall")]
+    pub tex_auto_install: String,
+    /// Zoom da interface; 0 = 100%.
+    #[serde(rename = "zoomLevel")]
+    pub zoom_level: i32,
 }
 
 impl Default for Settings {
@@ -36,6 +45,8 @@ impl Default for Settings {
             tex_source: "unset".into(),
             tex_bin_dir: None,
             tex_mirror: None,
+            tex_auto_install: "ask".into(),
+            zoom_level: 0,
         }
     }
 }
@@ -77,6 +88,18 @@ impl Settings {
             return Err(SettingsError::InvalidValue {
                 field: "texSource",
                 value: self.tex_source.clone(),
+            });
+        }
+        if !AUTO_INSTALL.contains(&self.tex_auto_install.as_str()) {
+            return Err(SettingsError::InvalidValue {
+                field: "texAutoInstall",
+                value: self.tex_auto_install.clone(),
+            });
+        }
+        if !ZOOM_RANGE.contains(&self.zoom_level) {
+            return Err(SettingsError::InvalidValue {
+                field: "zoomLevel",
+                value: self.zoom_level.to_string(),
             });
         }
         Ok(())
@@ -126,6 +149,26 @@ mod tests {
         let m = Settings::from_json(r#"{"texMirror":"https://m.example/tlnet"}"#).unwrap();
         assert_eq!(m.tex_mirror.as_deref(), Some("https://m.example/tlnet"));
         assert_eq!(Settings::default().tex_source, "unset");
+    }
+
+    #[test]
+    fn auto_install_defaults_to_ask_and_is_validated() {
+        assert_eq!(Settings::default().tex_auto_install, "ask");
+        let s = Settings::from_json(r#"{"texAutoInstall":"auto"}"#).unwrap();
+        assert_eq!(s.tex_auto_install, "auto");
+        assert!(Settings::from_json(r#"{"texAutoInstall":"sempre"}"#).is_err());
+    }
+
+    #[test]
+    fn zoom_level_defaults_to_zero_and_is_bounded() {
+        assert_eq!(Settings::default().zoom_level, 0);
+        assert_eq!(
+            Settings::from_json(r#"{"zoomLevel":3}"#)
+                .unwrap()
+                .zoom_level,
+            3
+        );
+        assert!(Settings::from_json(r#"{"zoomLevel":99}"#).is_err());
     }
 
     #[test]
