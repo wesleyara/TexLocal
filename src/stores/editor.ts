@@ -57,6 +57,9 @@ export const useEditorStore = defineStore('editor', () => {
   const prefs = ref<EditorPrefs>(loadPrefs())
   const reveal = ref<Reveal | null>(null)
   const reloadTick = ref(0)
+  /** Incrementam a cada edição / gravação bem-sucedida; a compilação automática observa. */
+  const change = ref({ tick: 0, path: '' })
+  const saved = ref({ tick: 0, path: '' })
   const cursor = ref({ line: 1, col: 1, selectionWords: null as number | null })
   let nonce = 0
   const timers = new Map<string, ReturnType<typeof setTimeout>>()
@@ -147,6 +150,7 @@ export const useEditorStore = defineStore('editor', () => {
       buffers.markSaved(tab.path)
       tab.eolChanged = false
       tab.dirty = buffers.isDirty(tab.path)
+      saved.value = { tick: saved.value.tick + 1, path: tab.path }
       return true
     } catch (e) {
       useNotificationsStore().notify(
@@ -166,6 +170,7 @@ export const useEditorStore = defineStore('editor', () => {
     const tab = find(path)
     if (!tab) return
     tab.dirty = buffers.isDirty(tab.path) || tab.eolChanged
+    change.value = { tick: change.value.tick + 1, path: tab.path }
     const k = pathKey(path)
     clearTimeout(timers.get(k))
     if (tab.dirty && (prefs.value.autosave === 'delay' || prefs.value.autosave === 'both')) {
@@ -274,6 +279,8 @@ export const useEditorStore = defineStore('editor', () => {
     prefs,
     reveal,
     reloadTick,
+    change,
+    saved,
     cursor,
     languageId,
     setPrefs,

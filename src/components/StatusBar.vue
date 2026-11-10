@@ -2,15 +2,19 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { wordCountFiles, type ProjectCount } from '../project/api'
+import { useCompileStore } from '../stores/compile'
 import { useEditorStore } from '../stores/editor'
 import { useNotificationsStore } from '../stores/notifications'
 import { useProjectStore } from '../stores/project'
+import { useUiStore } from '../stores/ui'
 import NotificationCenter from './NotificationCenter.vue'
 
 const { t } = useI18n()
 const notifications = useNotificationsStore()
 const editor = useEditorStore()
 const project = useProjectStore()
+const compile = useCompileStore()
+const ui = useUiStore()
 const centerOpen = ref(false)
 const detailsOpen = ref(false)
 const count = ref<ProjectCount | null>(null)
@@ -50,19 +54,60 @@ function toggleEol() {
   if (tab) editor.setEol(tab.path, tab.eol === 'lf' ? 'crlf' : 'lf')
 }
 
-// Valores reais chegam com os épicos de git (EP06/07) e compilação (EP04).
+// Valores reais de git chegam com os épicos EP06/07.
 const placeholders = [
   { key: 'status.branch', value: '—' },
   { key: 'status.sync', value: '—' },
-  { key: 'status.compile', value: '—' },
-  { key: 'status.engine', value: '—' },
 ]
+
+const compileLabel = computed(() => t(`compile.state.${compile.state}`))
+const compileIcon = computed(
+  () =>
+    ({
+      idle: '○',
+      running: '⟳',
+      success: '✔',
+      failed: '✖',
+      cancelled: '■',
+      timedOut: '⏱',
+      error: '✖',
+    })[compile.state],
+)
+
+function toggleProblems() {
+  ui.layout.bottomVisible = !ui.layout.bottomVisible
+}
 </script>
 
 <template>
   <footer class="statusbar">
     <span v-for="i in placeholders" :key="i.key" class="item" :title="t(i.key)">
       <span class="sr-only">{{ t(i.key) }}:</span>{{ i.value }}
+    </span>
+    <button
+      class="item btn compile"
+      :class="compile.state"
+      :title="t('status.compile')"
+      :aria-label="`${t('status.compile')}: ${compileLabel}`"
+      @click="toggleProblems"
+    >
+      <span aria-hidden="true">{{ compileIcon }}</span> {{ compileLabel }}
+      <template v-if="compile.counts.errors || compile.counts.warnings">
+        · ✖ {{ compile.counts.errors }} · ▲ {{ compile.counts.warnings }}
+      </template>
+    </button>
+    <button
+      class="item btn"
+      :title="t('status.autoCompile')"
+      role="switch"
+      :aria-checked="compile.auto"
+      :disabled="!compile.manifest"
+      @click="compile.toggleAuto()"
+    >
+      {{ t('status.auto') }}: {{ compile.auto ? t('status.on') : t('status.off') }}
+    </button>
+    <span v-if="compile.engine" class="item" :title="t('status.engine')">
+      <span class="sr-only">{{ t('status.engine') }}:</span>{{ compile.engine }}
     </span>
     <button
       class="item btn"
@@ -156,6 +201,11 @@ const placeholders = [
 }
 .btn:disabled {
   cursor: default;
+}
+.compile.failed,
+.compile.error,
+.compile.timedOut {
+  color: var(--danger);
 }
 .details {
   position: absolute;

@@ -55,6 +55,10 @@ pub struct CompileSection {
     pub auto: bool,
     pub shell_escape: bool,
     pub outdir: String,
+    /// Tempo máximo de uma compilação, em segundos (TL-401).
+    pub timeout_secs: u64,
+    /// Pausa de digitação antes da compilação automática, em milissegundos (TL-402).
+    pub debounce_ms: u64,
 }
 
 impl Default for CompileSection {
@@ -63,6 +67,8 @@ impl Default for CompileSection {
             auto: true,
             shell_escape: false,
             outdir: ".texlocal/build".into(),
+            timeout_secs: 300,
+            debounce_ms: 1500,
         }
     }
 }
@@ -143,6 +149,15 @@ impl Manifest {
             return Err(invalid(
                 "compile.outdir",
                 "deve ser um caminho relativo dentro do projeto",
+            ));
+        }
+        if !(5..=3600).contains(&self.compile.timeout_secs) {
+            return Err(invalid("compile.timeout_secs", "deve estar entre 5 e 3600"));
+        }
+        if !(200..=60_000).contains(&self.compile.debounce_ms) {
+            return Err(invalid(
+                "compile.debounce_ms",
+                "deve estar entre 200 e 60000",
             ));
         }
         if let Some(year) = self.tex.texlive {

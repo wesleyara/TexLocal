@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { EditorSelection, EditorState } from '@codemirror/state'
+import { forceLinting } from '@codemirror/lint'
 import { EditorView } from '@codemirror/view'
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { sameFile } from '../compile/model'
 import { gotoLabel, registerActiveView, showUsages } from '../editor/actions'
 import { buffers } from '../editor/buffers'
+import { compileLintExtension } from '../editor/compileLint'
 import { latexCompletionSources, type CompletionData } from '../editor/completions'
 import { languageIdFor } from '../editor/languages'
 import { refsExtension } from '../editor/refs'
@@ -17,14 +20,16 @@ import {
   spellSuggest,
   wordCountText,
 } from '../project/api'
+import { useCompileStore } from '../stores/compile'
 import { useEditorStore } from '../stores/editor'
 import { useProjectStore } from '../stores/project'
 import { useRefsStore } from '../stores/refs'
 
-const { t, locale } = useI18n()
+const { t, te, locale } = useI18n()
 const editor = useEditorStore()
 const project = useProjectStore()
 const refs = useRefsStore()
+const compile = useCompileStore()
 
 const host = ref<HTMLDivElement | null>(null)
 let view: EditorView | null = null
@@ -119,6 +124,17 @@ function stateFor(path: string): EditorState {
           onGoto: (name) => void gotoLabel(name),
           onUsages: (name) => showUsages(name),
           onRename: (name) => (refs.renaming = name),
+        }),
+        compileLintExtension({
+          diagnostics: () =>
+            project.root
+              ? compile.diagnostics.filter(
+                  (d) => d.file !== null && sameFile(project.root as string, d.file, path),
+                )
+              : [],
+          showBoxes: () => compile.showBoxes,
+          t: (key) => t(key),
+          has: (key) => te(key),
         }),
         spellExtension({
           lang: spellLang,
@@ -226,6 +242,10 @@ watch(() => editor.reveal, applyReveal)
 watch(
   () => editor.prefs.wrap,
   (wrap) => view?.dispatch({ effects: wrapEffect(wrap) }),
+)
+watch(
+  () => [compile.outcome, compile.showBoxes],
+  () => view && forceLinting(view),
 )
 watch(
   () => project.spellLanguage,

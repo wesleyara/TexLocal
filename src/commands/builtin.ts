@@ -1,5 +1,6 @@
 import { pickFolder } from '../project/api'
 import { getActiveView } from '../editor/actions'
+import { useCompileStore } from '../stores/compile'
 import { useEditorStore } from '../stores/editor'
 import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
@@ -91,7 +92,50 @@ export function registerBuiltinCommands(): void {
     keybinding: 'Mod+S',
     run: () => {
       const path = useEditorStore().active
-      if (path) void useEditorStore().save(path)
+      if (!path) return
+      void useEditorStore()
+        .save(path)
+        .then((ok) => {
+          if (ok) void useCompileStore().afterExplicitSave(path)
+        })
+    },
+  })
+  registerCommand({
+    id: 'compile.run',
+    titleKey: 'cmd.compile',
+    keybinding: 'Mod+Alt+B',
+    run: () => void useCompileStore().compile({ manual: true }),
+  })
+  registerCommand({
+    id: 'compile.cancel',
+    titleKey: 'cmd.cancelCompile',
+    run: () => void useCompileStore().cancel(),
+  })
+  registerCommand({
+    id: 'compile.toggleAuto',
+    titleKey: 'cmd.toggleAutoCompile',
+    run: () => void useCompileStore().toggleAuto(),
+  })
+  registerCommand({
+    id: 'compile.toggleShellEscape',
+    titleKey: 'cmd.toggleShellEscape',
+    run: () => {
+      const compile = useCompileStore()
+      void compile.setShellEscape(!compile.shellEscape)
+    },
+  })
+  registerCommand({
+    id: 'compile.syncToPdf',
+    titleKey: 'cmd.syncToPdf',
+    keybinding: 'Mod+Alt+J',
+    run: () => void useCompileStore().syncToPdf(),
+  })
+  registerCommand({
+    id: 'compile.toggleBoxWarnings',
+    titleKey: 'cmd.toggleBoxWarnings',
+    run: () => {
+      const compile = useCompileStore()
+      compile.showBoxes = !compile.showBoxes
     },
   })
   registerCommand({

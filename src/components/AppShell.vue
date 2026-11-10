@@ -10,6 +10,7 @@ import CommandPalette from './CommandPalette.vue'
 import EditorPane from './EditorPane.vue'
 import FileTree from './FileTree.vue'
 import OutlinePanel from './OutlinePanel.vue'
+import PdfViewer from './PdfViewer.vue'
 import RenameDialog from './RenameDialog.vue'
 import SearchPanel from './SearchPanel.vue'
 import SettingsDialog from './SettingsDialog.vue'
@@ -91,8 +92,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
                 : {}
             "
           >
-            <h2>{{ t('pdf.title') }}</h2>
-            <p class="muted">{{ t('pdf.placeholder') }}</p>
+            <PdfViewer />
           </section>
         </div>
 
@@ -159,6 +159,9 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   overflow: hidden;
 }
 .pdf {
+  display: flex;
+  padding: 0;
+  overflow: hidden;
   background: var(--bg-panel);
 }
 .bottom {

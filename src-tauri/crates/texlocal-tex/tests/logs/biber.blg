@@ -1,0 +1,8 @@
+[0] Biber.pm:131> INFO - This is Biber 2.20
+[0] Biber.pm:135> INFO - Logfile is 'main.blg'
+[64] Biber.pm:416> INFO - Found 3 citekeys in bib section 0
+[70] Utils.pm:240> ERROR - BibTeX subsystem: /tmp/biber_tmp/refs.bib_29431.utf8, line 5, syntax error: at 'title'
+[70] Utils.pm:240> WARN - Entry 'doe2020' (refs.bib): Invalid format of field 'date' - ignoring field
+[71] Utils.pm:240> ERROR - Cannot find 'missing.bib'!
+[75] Biber.pm:131> INFO - WARNINGS: 1
+[75] Biber.pm:131> INFO - ERRORS: 2

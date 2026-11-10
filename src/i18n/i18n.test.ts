@@ -25,3 +25,27 @@ describe('i18n', () => {
     expect(detectLocale('de')).toBe('en')
   })
 })
+
+describe('explicações de erros de compilação', () => {
+  it('toda explicação emitida pelo parser Rust existe nos dois idiomas', async () => {
+    const { readFileSync } = await import('node:fs')
+    const { resolve } = await import('node:path')
+    const rust = (file: string) =>
+      readFileSync(resolve(process.cwd(), 'src-tauri/crates/texlocal-tex/src', file), 'utf8')
+    const ids = new Set<string>()
+    // Tabela `("trecho", "id"),` e retornos diretos `Some("id")`.
+    for (const m of rust('diagnostics.rs').matchAll(/",\s*"([a-z][A-Za-z]+)"\),/g)) ids.add(m[1])
+    for (const m of rust('diagnostics.rs').matchAll(/return Some\("([a-z][A-Za-z]+)"\)/g))
+      ids.add(m[1])
+    for (const m of rust('compile.rs').matchAll(/explanation: Some\("([a-z][A-Za-z]+)"\)/g)) {
+      ids.add(m[1])
+    }
+    expect(ids.size).toBeGreaterThan(20)
+    const explain = (l: unknown) =>
+      Object.keys((l as { compile: { explain: object } }).compile.explain)
+    for (const id of ids) {
+      expect(explain(ptBR), `falta pt-BR compile.explain.${id}`).toContain(id)
+      expect(explain(en), `falta en compile.explain.${id}`).toContain(id)
+    }
+  })
+})

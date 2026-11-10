@@ -1,0 +1,17 @@
+This is BibTeX, Version 0.99d (TeX Live 2025)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: main.aux
+The style file: plain.bst
+I couldn't open database file extra.bib
+---line 4 of file main.aux
+ : \bibdata{refs,extra
+ :                    }
+I'm skipping whatever remains of this command
+Database file #1: refs.bib
+I was expecting a `,' or a `}'---line 12 of file refs.bib
+ : @article{knuth84
+ :                 title = {The TeXbook}
+I'm skipping whatever remains of this entry
+Warning--I didn't find a database entry for "lamport94"
+Warning--empty journal in knuth84
+(There were 2 error messages)

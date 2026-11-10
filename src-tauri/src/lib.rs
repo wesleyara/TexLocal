@@ -1,3 +1,4 @@
+mod compile_commands;
 mod editor_commands;
 mod tex_commands;
 
@@ -45,6 +46,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .manage(tex_commands::InstallState::default())
         .manage(editor_commands::ProjectState::default())
+        .manage(compile_commands::CompileState::default())
         .invoke_handler(tauri::generate_handler![
             app_version,
             get_settings,
@@ -56,6 +58,11 @@ pub fn run() {
             tex_commands::save_project_manifest,
             tex_commands::tex_install,
             tex_commands::tex_install_cancel,
+            compile_commands::compile_start,
+            compile_commands::compile_cancel,
+            compile_commands::pdf_read,
+            compile_commands::synctex_forward,
+            compile_commands::synctex_inverse,
             editor_commands::file_read,
             editor_commands::file_write,
             editor_commands::project_files,

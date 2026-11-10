@@ -62,7 +62,20 @@
   },
   "pdf": {
     "title": "PDF",
-    "placeholder": "The compiled PDF will appear here."
+    "placeholder": "The compiled PDF will appear here.",
+    "loading": "Loading PDF…",
+    "error": "Could not open the PDF.",
+    "toolbar": "PDF toolbar",
+    "thumbnails": "Thumbnails",
+    "page": "Page {n}",
+    "goToPage": "Go to page",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "zoom": "Zoom",
+    "fitWidth": "Fit width",
+    "fitPage": "Fit page",
+    "search": "Search in PDF",
+    "noMatches": "No results"
   },
   "bottom": {
     "problems": "Problems",
@@ -88,7 +101,11 @@
     "encoding": "Encoding",
     "wordsDetail": "Word count",
     "wordsBreakdown": "Text: {words} · Headers: {headers} · Inline math: {inline} · Display math: {display}",
-    "beforeFirstSection": "(before the first section)"
+    "beforeFirstSection": "(before the first section)",
+    "autoCompile": "Automatic compilation (click to toggle)",
+    "auto": "Auto",
+    "on": "on",
+    "off": "off"
   },
   "palette": {
     "commandsPlaceholder": "Type a command…",
@@ -118,7 +135,13 @@
     "cycleAutosave": "Cycle autosave mode",
     "toggleEol": "Toggle line ending (LF/CRLF)",
     "gotoLine": "Go to line…",
-    "searchProject": "Search in project"
+    "searchProject": "Search in project",
+    "compile": "Compile",
+    "cancelCompile": "Cancel compilation",
+    "toggleAutoCompile": "Toggle automatic compilation",
+    "toggleShellEscape": "Toggle shell-escape (runs commands from the document)",
+    "syncToPdf": "Show cursor position in the PDF",
+    "toggleBoxWarnings": "Show/hide overfull/underfull box warnings"
   },
   "settings": {
     "title": "Settings",
@@ -253,5 +276,90 @@
     "confirm": "Replace in {count} file(s)? This writes to disk.",
     "replaced": "Replaced in {count} file(s).",
     "skippedDirty": "{count} file(s) with unsaved changes were skipped. Save and try again."
+  },
+  "compile": {
+    "run": "Compile",
+    "cancel": "Cancel",
+    "state": {
+      "idle": "Not compiled",
+      "running": "Compiling…",
+      "success": "Compiled",
+      "failed": "Errors",
+      "cancelled": "Cancelled",
+      "timedOut": "Timed out",
+      "error": "Failed"
+    },
+    "timedOut": "The compilation exceeded the time limit (compile.timeout_secs in texlocal.toml).",
+    "notCompiled": "Compile the project to see errors and warnings.",
+    "filters": "Problem filters",
+    "filter": {
+      "kind": "Problem type",
+      "all": "All",
+      "errors": "Errors",
+      "warnings": "Warnings",
+      "file": "File",
+      "allFiles": "All files",
+      "boxes": "Box warnings"
+    },
+    "log": {
+      "search": "Search the log",
+      "noMatches": "No matches",
+      "previous": "Previous match",
+      "next": "Next match",
+      "source": "Log source",
+      "texLog": "TeX log",
+      "latexmk": "latexmk output",
+      "empty": "No log yet. Compile the project."
+    },
+    "shellEscape": {
+      "title": "Enable shell-escape?",
+      "warning": "With shell-escape the document can run arbitrary commands on your computer while compiling. Only enable it for projects you trust (needed by packages like minted). Enable for this project?"
+    },
+    "sync": {
+      "noPosition": "No matching position found. Compile the project and try again.",
+      "unavailable": "SyncTeX data is not available. Compile the project first."
+    },
+    "error": {
+      "latexmkNotFound": "latexmk was not found in the selected TeX installation. Set up TeX again from the command palette.",
+      "mainNotFound": "The main file of the project was not found. Check project.main in texlocal.toml.",
+      "manifest": "texlocal.toml is invalid. Fix the file and compile again.",
+      "busy": "A compilation of this project is already running.",
+      "io": "The compilation could not be started.",
+      "unavailable": "Compiling is only available in the desktop app."
+    },
+    "explain": {
+      "undefinedControlSequence": "The command was not recognized. Check for a typo or a missing \\usepackage.",
+      "missingDollar": "Math symbols (like _ or ^) were used outside math mode. Wrap the formula in $…$.",
+      "missingBrace": "A { or } is missing. Check that every brace is paired.",
+      "extraBrace": "There is an extra } or a math formula was left open.",
+      "tooManyBraces": "There is one } more than needed.",
+      "runaway": "A command argument was never closed. Look for a missing } above.",
+      "paragraphEnded": "A blank line appeared inside a command argument. Remove the empty line.",
+      "misplacedAlignment": "The & character is only valid in tables. Use \\& to print an ampersand.",
+      "missingNumber": "A number was expected here. Check the command's arguments.",
+      "illegalParameter": "In definitions, use #1, #2… for parameters (and ## inside nested definitions).",
+      "emergencyStop": "LaTeX stopped because of the error above. Fix it and compile again.",
+      "fatalError": "The compilation was aborted and no PDF was produced. Fix the first error listed.",
+      "undefinedEnvironment": "This environment does not exist. Check the name or load the package that defines it.",
+      "environmentMismatch": "\\begin and \\end do not match. Check the nesting of environments.",
+      "unicodeCharacter": "This character is not supported with the current encoding. Use XeLaTeX/LuaLaTeX or \\usepackage[utf8]{inputenc}.",
+      "fileNotFound": "A file or package was not found. Check the name and path; the package may be installable.",
+      "preambleOnly": "This command is only allowed in the preamble (before \\begin{document}).",
+      "commandAlreadyDefined": "A command with this name already exists. Use \\renewcommand or choose another name.",
+      "floatsLost": "Some figures or tables could not be placed. Try [htbp] or \\clearpage.",
+      "overfullBox": "A line is too wide for the margin. Rephrase it or add hyphenation hints.",
+      "underfullBox": "A line was stretched too much (loose spacing). Usually harmless.",
+      "undefinedReferences": "Some \\ref or \\cite targets are missing. Compile again; if it persists, check labels and the bibliography.",
+      "undefinedReference": "The label does not exist yet. Compile twice, or check the \\label name.",
+      "undefinedCitation": "The bibliography entry was not found. Check the key in your .bib file and compile again.",
+      "rerunNeeded": "Labels changed. Another compilation fixes the cross-references.",
+      "multiplyDefined": "The same label is defined more than once. Rename one of them.",
+      "fontShape": "The requested font size or shape is not available; LaTeX used a substitute.",
+      "bibMissingEntry": "The cited key does not exist in the .bib file.",
+      "bibMissingDatabase": "The .bib file could not be found. Check the name in \\bibliography or \\addbibresource.",
+      "bibNoCitations": "No citations were found. Use \\cite in the text and \\bibliography at the end.",
+      "bibSyntax": "There is a syntax error in the .bib entry (missing comma, brace or quote).",
+      "latexmkFailed": "latexmk failed before running TeX. Check the output in the Log tab."
+    }
   }
 }
