@@ -13,14 +13,17 @@ import { relativePath } from '../project/api'
 import { labelProblems } from '../project/model'
 import { useCompileStore } from '../stores/compile'
 import { useEditorStore } from '../stores/editor'
+import { usePackagesStore } from '../stores/packages'
 import { useProjectStore } from '../stores/project'
 import { useRefsStore } from '../stores/refs'
+import AppIcon from './AppIcon.vue'
 
 const { t, te } = useI18n()
 const editor = useEditorStore()
 const project = useProjectStore()
 const refs = useRefsStore()
 const compile = useCompileStore()
+const packages = usePackagesStore()
 
 const kind = ref<KindFilter>('all')
 const file = ref<string | null>(null)
@@ -58,6 +61,26 @@ function open(d: Diagnostic) {
 
 <template>
   <div class="problems">
+    <div v-if="packages.suggestion" class="banner" role="alert">
+      <AppIcon name="download" :size="16" />
+      <span class="text">
+        <strong>{{
+          t('packages.missing', { names: packages.names }, packages.suggestion.packages.length)
+        }}</strong>
+        <small>{{ t('packages.files', { files: packages.suggestion.files.join(', ') }) }}</small>
+      </span>
+      <button class="primary" :disabled="packages.installing" @click="packages.install()">
+        {{ packages.installing ? t('packages.installingShort') : t('packages.install') }}
+      </button>
+      <button :disabled="packages.installing" @click="packages.dismiss()">
+        {{ t('packages.ignore') }}
+      </button>
+    </div>
+    <p v-if="packages.error" class="banner-note error" role="alert">{{ packages.error }}</p>
+    <p v-if="packages.unresolved.length" class="banner-note">
+      {{ t('packages.unresolved', { files: packages.unresolved.join(', ') }) }}
+    </p>
+
     <div class="filters" role="group" :aria-label="t('compile.filters')">
       <select v-model="kind" :aria-label="t('compile.filter.kind')">
         <option value="all">{{ t('compile.filter.all') }}</option>
@@ -96,7 +119,9 @@ function open(d: Diagnostic) {
         @click="open(d)"
         @keydown.enter="open(d)"
       >
-        <span class="sev" aria-hidden="true">{{ d.severity === 'error' ? '✖' : '▲' }}</span>
+        <span class="sev"
+          ><AppIcon :name="d.severity === 'error' ? 'alert-circle' : 'alert'" :size="15"
+        /></span>
         <span class="msg">
           {{ friendly(d) ?? d.message }}
           <small v-if="friendly(d)" class="raw">{{ d.message }}</small>
@@ -116,12 +141,14 @@ function open(d: Diagnostic) {
           editor.openFile(editor.active, { line: p.line, col: p.col, endCol: p.endCol })
         "
       >
-        <span class="sev" aria-hidden="true">{{ p.severity === 'error' ? '✖' : '▲' }}</span>
+        <span class="sev"
+          ><AppIcon :name="p.severity === 'error' ? 'alert-circle' : 'alert'" :size="15"
+        /></span>
         <span class="msg">{{ t(p.messageKey, p.params) }}</span>
         <span class="loc">{{ p.line + 1 }}:{{ p.col + 1 }}</span>
       </li>
       <li v-for="m in project.view.missing" :key="m" class="row warning">
-        <span class="sev" aria-hidden="true">▲</span>
+        <span class="sev"><AppIcon name="alert" :size="15" /></span>
         <span class="msg">{{ t('editor.problem.missingFile', { name: m }) }}</span>
       </li>
     </ul>
@@ -129,7 +156,9 @@ function open(d: Diagnostic) {
     <template v-if="refs.name">
       <h2>
         {{ t('editor.usages', { name: refs.name }) }}
-        <button class="x" :aria-label="t('settings.close')" @click="refs.clear()">×</button>
+        <button class="x" :aria-label="t('settings.close')" @click="refs.clear()">
+          <AppIcon name="close" :size="14" />
+        </button>
       </h2>
       <ul>
         <li
@@ -164,6 +193,49 @@ h2 {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-muted);
+}
+.banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-2);
+  background: var(--bg-elevated);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+}
+.banner .text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.banner small,
+.banner-note {
+  color: var(--text-muted);
+}
+.banner-note {
+  margin: 0 0 var(--space-2);
+}
+.banner-note.error {
+  color: var(--danger);
+}
+.banner button {
+  padding: 3px var(--space-3);
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.banner button.primary {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-color: var(--accent);
+}
+.banner button:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 .filters {
   display: flex;

@@ -165,7 +165,12 @@
     "saveFailed": "Could not save settings.",
     "texWizard": "Set up TeX…",
     "texMirror": "CTAN mirror (optional)",
-    "texMirrorHint": "tlnet mirror URL; empty uses the automatic one."
+    "texMirrorHint": "tlnet mirror URL; empty uses the automatic one.",
+    "texAutoInstall": "Missing package",
+    "texAutoInstallHint": "What to do when a build needs a package that is not installed.",
+    "autoInstallAsk": "Ask",
+    "autoInstallAuto": "Install automatically",
+    "autoInstallNever": "Never install"
   },
   "notify": {
     "center": "Notification center",
@@ -174,7 +179,9 @@
     "noTasks": "No running tasks.",
     "cancel": "Cancel",
     "dismiss": "Dismiss",
-    "clear": "Clear"
+    "clear": "Clear",
+    "open": "Open",
+    "openTask": "Open {title}"
   },
   "wizard": {
     "title": "TeX setup",
@@ -236,7 +243,8 @@
       "packageNotFound": "The package was not found in the repository.",
       "permissionDenied": "No permission to write to the TeX installation.",
       "cancelled": "Operation cancelled.",
-      "unknown": "The package manager failed. See the log for details."
+      "unknown": "The package manager failed. See the log for details.",
+      "unavailable": "The package manager (tlmgr) is not available in this TeX distribution. Install the package manually."
     }
   },
   "installer": {
@@ -330,10 +338,10 @@
     "explain": {
       "undefinedControlSequence": "The command was not recognized. Check for a typo or a missing \\usepackage.",
       "missingDollar": "Math symbols (like _ or ^) were used outside math mode. Wrap the formula in $…$.",
-      "missingBrace": "A { or } is missing. Check that every brace is paired.",
-      "extraBrace": "There is an extra } or a math formula was left open.",
-      "tooManyBraces": "There is one } more than needed.",
-      "runaway": "A command argument was never closed. Look for a missing } above.",
+      "missingBrace": "A {'{'} or {'}'} is missing. Check that every brace is paired.",
+      "extraBrace": "There is an extra {'}'} or a math formula was left open.",
+      "tooManyBraces": "There is one {'}'} more than needed.",
+      "runaway": "A command argument was never closed. Look for a missing {'}'} above.",
       "paragraphEnded": "A blank line appeared inside a command argument. Remove the empty line.",
       "misplacedAlignment": "The & character is only valid in tables. Use \\& to print an ampersand.",
       "missingNumber": "A number was expected here. Check the command's arguments.",
@@ -361,5 +369,36 @@
       "bibSyntax": "There is a syntax error in the .bib entry (missing comma, brace or quote).",
       "latexmkFailed": "latexmk failed before running TeX. Check the output in the Log tab."
     }
+  },
+  "resources": {
+    "title": "Downloaded resources",
+    "hint": "Files downloaded and installed by TexLocal. Removing them frees disk space.",
+    "refresh": "Refresh",
+    "loading": "Loading…",
+    "empty": "No downloaded resources.",
+    "kind": {
+      "texTree": "TeX Live {year}",
+      "partial": "Incomplete TeX Live {year} install",
+      "downloadCache": "Download cache"
+    },
+    "inUse": "in use",
+    "remove": "Remove",
+    "confirm": "Confirm removal",
+    "removing": "Removing…",
+    "removed": "{name} removed.",
+    "removeFailed": "Could not remove {name}.",
+    "listFailed": "Could not list resources.",
+    "total": "Total: {size}",
+    "busy": "An installation is running; removal is unavailable until it finishes."
+  },
+  "packages": {
+    "missing": "Missing package: {names} | Missing packages: {names}",
+    "files": "Files not found: {files}",
+    "install": "Install and recompile",
+    "installingShort": "Installing…",
+    "ignore": "Ignore",
+    "installing": "Installing {names}",
+    "installed": "Installed: {names}.",
+    "unresolved": "No TeX Live package provides: {files}. If it is your own file, check its name and path."
   }
 }

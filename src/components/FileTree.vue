@@ -2,8 +2,11 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { buildTree, flattenTree } from '../project/tree'
+import { getCommand } from '../commands/registry'
 import { useEditorStore } from '../stores/editor'
 import { useProjectStore } from '../stores/project'
+import { fileIconKey, folderIconKey } from '../icons/fileIcons'
+import AppIcon from './AppIcon.vue'
 
 const { t } = useI18n()
 const project = useProjectStore()
@@ -43,16 +46,26 @@ function click(row: { path: string; dir: boolean }) {
           @click="click(row)"
           @keydown.enter="click(row)"
         >
-          <span aria-hidden="true" class="glyph">{{
-            row.dir ? (collapsed.has(row.path) ? '▸' : '▾') : '·'
-          }}</span>
-          {{ row.name }}
+          <span class="chevron">
+            <AppIcon
+              v-if="row.dir"
+              :name="collapsed.has(row.path) ? 'chevron-right' : 'chevron-down'"
+              :size="14"
+            />
+          </span>
+          <AppIcon
+            :name="
+              row.dir ? folderIconKey(row.name, !collapsed.has(row.path)) : fileIconKey(row.name)
+            "
+            :size="16"
+          />
+          <span class="label">{{ row.name }}</span>
         </li>
       </ul>
     </template>
     <div v-else class="none">
       <p class="muted">{{ t('sidebar.empty') }}</p>
-      <button @click="project.openFolder()">{{ t('project.open') }}</button>
+      <button @click="getCommand('project.open')?.run()">{{ t('project.open') }}</button>
     </div>
   </div>
 </template>
@@ -64,12 +77,14 @@ ul {
   list-style: none;
 }
 li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   padding-top: 3px;
   padding-bottom: 3px;
   padding-right: 8px;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
   cursor: pointer;
   border-radius: var(--radius-sm);
 }
@@ -80,10 +95,16 @@ li.active {
   background: var(--bg-hover);
   color: var(--accent);
 }
-.glyph {
-  display: inline-block;
-  width: 12px;
+.chevron {
+  display: inline-flex;
+  width: 14px;
+  flex: none;
   color: var(--text-muted);
+}
+.label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .muted {
   color: var(--text-muted);

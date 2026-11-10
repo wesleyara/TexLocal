@@ -76,7 +76,7 @@ describe('compile store', () => {
     const { compile } = await setup()
     api.compileStart.mockResolvedValueOnce(outcome())
     await compile.compile({ manual: true })
-    expect(api.compileStart).toHaveBeenCalledWith('/p', undefined)
+    expect(api.compileStart).toHaveBeenCalledWith('/p', undefined, undefined)
     expect(compile.state).toBe('success')
     expect(compile.pdfVersion).toBe(1)
 

@@ -18,6 +18,7 @@ import { t } from '../i18n'
 import { joinPath } from '../project/api'
 import { useEditorStore } from './editor'
 import { useNotificationsStore } from './notifications'
+import { usePackagesStore } from './packages'
 import { useProjectStore } from './project'
 import { useSettingsStore } from './settings'
 import { useUiStore } from './ui'
@@ -127,6 +128,8 @@ export const useCompileStore = defineStore('compile', () => {
   }
 
   let savingForCompile = false
+  /** A compilação enfileirada deve ser forçada (veio de uma instalação de pacote). */
+  let queuedForce = false
   async function saveRelevant() {
     savingForCompile = true
     try {
@@ -140,22 +143,27 @@ export const useCompileStore = defineStore('compile', () => {
    * Compila agora. Se já houver uma compilação do projeto, enfileira uma nova para quando ela
    * terminar (nunca duas em paralelo). `manual` mostra avisos de erro ao usuário.
    */
-  async function compile(opts: { manual?: boolean; save?: boolean } = {}): Promise<void> {
+  async function compile(
+    opts: { manual?: boolean; save?: boolean; force?: boolean } = {},
+  ): Promise<void> {
     const root = project.root
     if (!root) return
     clearTimer()
     if (state.value === 'running') {
       queued.value = true
+      if (opts.force) queuedForce = true
       return
     }
     state.value = 'running'
     error.value = null
     try {
       if (opts.save ?? true) await saveRelevant()
-      const result = await compileStart(root, settings.effective.texBinDir)
+      const result = await compileStart(root, settings.effective.texBinDir, opts.force)
       outcome.value = result
       state.value = result.status
       if (result.pdfUpdated) pdfVersion.value++
+      // Pacote faltante: sugere (ou faz) a instalação e recompila.
+      void usePackagesStore().inspect(result)
       if (result.status === 'timedOut' && opts.manual) {
         notifications.notify('error', t('compile.timedOut'))
       }
@@ -170,7 +178,9 @@ export const useCompileStore = defineStore('compile', () => {
     } finally {
       if (queued.value) {
         queued.value = false
-        void compile({ manual: false })
+        const force = queuedForce
+        queuedForce = false
+        void compile({ manual: false, force })
       }
     }
   }

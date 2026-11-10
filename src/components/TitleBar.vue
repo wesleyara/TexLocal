@@ -13,7 +13,7 @@ interface Menu {
 }
 
 const menus: Menu[] = [
-  { labelKey: 'menu.file', items: ['palette.files', 'settings.open'] },
+  { labelKey: 'menu.file', items: ['project.open', 'palette.files', 'settings.open'] },
   {
     labelKey: 'menu.view',
     items: [

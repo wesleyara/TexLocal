@@ -20,6 +20,7 @@ import {
   type ZoomMode,
 } from '../pdf/layout'
 import { useCompileStore, type SyncTarget } from '../stores/compile'
+import AppIcon from './AppIcon.vue'
 import PdfThumbs from './PdfThumbs.vue'
 
 pdfjs.GlobalWorkerOptions.workerSrc = workerUrl
@@ -544,15 +545,20 @@ watch(
 // ───────────────────────── ciclo de vida ─────────────────────────
 
 let resizeObserver: ResizeObserver | null = null
+let resizeTimer: ReturnType<typeof setTimeout> | undefined
 
 onMounted(() => {
   const el = scroller.value
   if (el) {
     box.value = { w: el.clientWidth, h: el.clientHeight }
     if (typeof ResizeObserver !== 'undefined') {
+      // Debounce: no zoom "ajustar largura", cada largura nova recalcula a escala e re-renderiza.
       resizeObserver = new ResizeObserver(() => {
-        box.value = { w: el.clientWidth, h: el.clientHeight }
-        scheduleRender()
+        clearTimeout(resizeTimer)
+        resizeTimer = setTimeout(() => {
+          box.value = { w: el.clientWidth, h: el.clientHeight }
+          scheduleRender()
+        }, 90)
       })
       resizeObserver.observe(el)
     }
@@ -568,6 +574,7 @@ watch(
 onBeforeUnmount(() => {
   cancelAnimationFrame(raf)
   clearTimeout(renderTimer)
+  clearTimeout(resizeTimer)
   clearTimeout(syncTimer)
   clearTimeout(searchTimer)
   resizeObserver?.disconnect()
@@ -590,7 +597,7 @@ const stateLabel = computed(() => t(`compile.state.${compile.state}`))
         :aria-label="t('cmd.compile')"
         @click="compile.compile({ manual: true })"
       >
-        ▶ {{ t('compile.run') }}
+        <AppIcon name="play" :size="14" /> {{ t('compile.run') }}
       </button>
       <button
         v-else
@@ -599,7 +606,7 @@ const stateLabel = computed(() => t(`compile.state.${compile.state}`))
         :aria-label="t('cmd.cancelCompile')"
         @click="compile.cancel()"
       >
-        ■ {{ t('compile.cancel') }}
+        <AppIcon name="stop" :size="14" /> {{ t('compile.cancel') }}
       </button>
       <span class="state" :class="compile.state" aria-live="polite">{{ stateLabel }}</span>
       <span class="spacer" />
@@ -611,7 +618,7 @@ const stateLabel = computed(() => t(`compile.state.${compile.state}`))
         :disabled="status !== 'ready'"
         @click="showThumbs = !showThumbs"
       >
-        ▤
+        <AppIcon name="view-grid-outline" :size="15" />
       </button>
       <label class="page-box">
         <input
@@ -625,7 +632,7 @@ const stateLabel = computed(() => t(`compile.state.${compile.state}`))
         <span>/ {{ sizes.length }}</span>
       </label>
       <button :title="t('pdf.zoomOut')" :aria-label="t('pdf.zoomOut')" @click="zoomBy(-1)">
-        −
+        <AppIcon name="minus" :size="15" />
       </button>
       <select v-model="zoomSelect" :aria-label="t('pdf.zoom')">
         <option value="fitWidth">{{ t('pdf.fitWidth') }}</option>
@@ -638,7 +645,9 @@ const stateLabel = computed(() => t(`compile.state.${compile.state}`))
           {{ mode.value }}%
         </option>
       </select>
-      <button :title="t('pdf.zoomIn')" :aria-label="t('pdf.zoomIn')" @click="zoomBy(1)">+</button>
+      <button :title="t('pdf.zoomIn')" :aria-label="t('pdf.zoomIn')" @click="zoomBy(1)">
+        <AppIcon name="plus" :size="15" />
+      </button>
       <span class="percent" aria-hidden="true">{{ percent }}%</span>
 
       <input
@@ -708,6 +717,8 @@ const stateLabel = computed(() => t(`compile.state.${compile.state}`))
 .viewer {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  width: 100%;
   height: 100%;
   min-height: 0;
   min-width: 0;
@@ -733,6 +744,9 @@ const stateLabel = computed(() => t(`compile.state.${compile.state}`))
   font: inherit;
 }
 .toolbar button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   cursor: pointer;
 }
 .toolbar button[aria-pressed='true'] {

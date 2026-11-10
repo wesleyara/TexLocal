@@ -45,6 +45,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .manage(tex_commands::InstallState::default())
+        .manage(tex_commands::PackageState::default())
         .manage(editor_commands::ProjectState::default())
         .manage(compile_commands::CompileState::default())
         .invoke_handler(tauri::generate_handler![
@@ -58,6 +59,11 @@ pub fn run() {
             tex_commands::save_project_manifest,
             tex_commands::tex_install,
             tex_commands::tex_install_cancel,
+            tex_commands::tex_resolve_package,
+            tex_commands::tex_install_packages,
+            tex_commands::tex_install_packages_cancel,
+            tex_commands::resources_list,
+            tex_commands::resources_remove,
             compile_commands::compile_start,
             compile_commands::compile_cancel,
             compile_commands::pdf_read,

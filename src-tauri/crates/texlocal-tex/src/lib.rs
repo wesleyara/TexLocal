@@ -11,6 +11,7 @@ pub mod paths;
 pub mod process;
 pub mod profile;
 pub mod reconcile;
+pub mod resources;
 pub mod synctex;
 pub mod tlmgr;
 

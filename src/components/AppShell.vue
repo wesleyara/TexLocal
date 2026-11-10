@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { allCommands, effectiveBinding, matchesEvent } from '../commands/registry'
+import { allCommands, effectiveBinding, getCommand, matchesEvent } from '../commands/registry'
 import { useSettingsStore } from '../stores/settings'
 import { useUiStore } from '../stores/ui'
 import ActivityBar from './ActivityBar.vue'
+import AppIcon from './AppIcon.vue'
 import BottomPanel from './BottomPanel.vue'
 import CommandPalette from './CommandPalette.vue'
 import EditorPane from './EditorPane.vue'
@@ -57,7 +58,17 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       <template v-if="ui.layout.sidebarVisible">
         <aside class="sidebar" :style="{ width: ui.layout.sidebarWidth + 'px' }">
           <template v-if="ui.sidebarPanel === 'files'">
-            <h2>{{ t('sidebar.files') }}</h2>
+            <div class="head">
+              <h2>{{ t('sidebar.files') }}</h2>
+              <button
+                class="icon-btn"
+                :title="t('cmd.openFolder')"
+                :aria-label="t('cmd.openFolder')"
+                @click="getCommand('project.open')?.run()"
+              >
+                <AppIcon name="folder-open-outline" :size="16" />
+              </button>
+            </div>
             <FileTree />
             <OutlinePanel />
           </template>
@@ -171,11 +182,30 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   overflow: auto;
 }
 h2 {
-  margin: 0 0 var(--space-2);
+  margin: 0;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-muted);
+}
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+.icon-btn {
+  display: inline-flex;
+  padding: 3px;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.icon-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text);
 }
 .muted {
   margin: 0;

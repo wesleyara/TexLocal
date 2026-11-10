@@ -53,6 +53,7 @@ pub async fn compile_start(
     state: State<'_, CompileState>,
     dir: String,
     bin_dir: Option<String>,
+    force: Option<bool>,
 ) -> Result<CompileOutcome, CompileError> {
     let cancel = Arc::new(AtomicBool::new(false));
     {
@@ -78,6 +79,7 @@ pub async fn compile_start(
                 project_dir,
                 bin_dir: bin_dir.filter(|b| !b.trim().is_empty()).map(PathBuf::from),
                 manifest,
+                force: force.unwrap_or(false),
             },
             &cancel,
         )

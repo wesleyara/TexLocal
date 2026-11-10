@@ -84,9 +84,14 @@ const unavailable = (): never => {
   throw { kind: 'unavailable', i18nKey: 'compile.error.unavailable', details: '' }
 }
 
-export async function compileStart(dir: string, binDir?: string): Promise<CompileOutcome> {
+/** `force` passa `-g` ao latexmk (recompila mesmo sem mudanças nos arquivos). */
+export async function compileStart(
+  dir: string,
+  binDir?: string,
+  force = false,
+): Promise<CompileOutcome> {
   if (!isTauri()) return unavailable()
-  return invoke<CompileOutcome>('compile_start', { dir, binDir: binDir ?? null })
+  return invoke<CompileOutcome>('compile_start', { dir, binDir: binDir ?? null, force })
 }
 
 export async function compileCancel(dir: string): Promise<void> {

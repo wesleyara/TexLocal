@@ -10,17 +10,32 @@ function onPointerDown(e: PointerEvent) {
   const target = e.currentTarget as HTMLElement
   target.setPointerCapture(e.pointerId)
   let last = props.orientation === 'vertical' ? e.clientX : e.clientY
+  let pending = 0
+  let frame = 0
+  // Um resize por quadro: arrastar não deve refazer o layout a cada evento do mouse.
+  const flush = () => {
+    frame = 0
+    if (pending !== 0) emit('resize', pending)
+    pending = 0
+  }
   const move = (ev: PointerEvent) => {
     const pos = props.orientation === 'vertical' ? ev.clientX : ev.clientY
-    emit('resize', pos - last)
+    pending += pos - last
     last = pos
+    if (!frame) frame = requestAnimationFrame(flush)
   }
   const up = () => {
     target.removeEventListener('pointermove', move)
     target.removeEventListener('pointerup', up)
+    target.removeEventListener('pointercancel', up)
+    cancelAnimationFrame(frame)
+    flush()
+    document.documentElement.classList.remove('is-resizing')
   }
+  document.documentElement.classList.add('is-resizing')
   target.addEventListener('pointermove', move)
   target.addEventListener('pointerup', up)
+  target.addEventListener('pointercancel', up)
 }
 
 function onKey(e: KeyboardEvent) {

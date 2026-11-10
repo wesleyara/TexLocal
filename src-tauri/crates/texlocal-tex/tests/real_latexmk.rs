@@ -32,6 +32,7 @@ fn request(dir: &Path) -> CompileRequest {
         project_dir: dir.to_path_buf(),
         bin_dir: None,
         manifest: Manifest::default(),
+        force: false,
     }
 }
 

@@ -165,7 +165,12 @@
     "saveFailed": "Não foi possível salvar as configurações.",
     "texWizard": "Configurar o TeX…",
     "texMirror": "Espelho CTAN (opcional)",
-    "texMirrorHint": "URL do espelho tlnet; vazio usa o automático."
+    "texMirrorHint": "URL do espelho tlnet; vazio usa o automático.",
+    "texAutoInstall": "Pacote faltante",
+    "texAutoInstallHint": "O que fazer quando a compilação precisa de um pacote que não está instalado.",
+    "autoInstallAsk": "Perguntar",
+    "autoInstallAuto": "Instalar automaticamente",
+    "autoInstallNever": "Nunca instalar"
   },
   "notify": {
     "center": "Central de notificações",
@@ -174,7 +179,9 @@
     "noTasks": "Nenhuma tarefa em andamento.",
     "cancel": "Cancelar",
     "dismiss": "Dispensar",
-    "clear": "Limpar"
+    "clear": "Limpar",
+    "open": "Abrir",
+    "openTask": "Abrir {title}"
   },
   "wizard": {
     "title": "Configuração do TeX",
@@ -236,7 +243,8 @@
       "packageNotFound": "O pacote não foi encontrado no repositório.",
       "permissionDenied": "Sem permissão para gravar na instalação do TeX.",
       "cancelled": "Operação cancelada.",
-      "unknown": "O gerenciador de pacotes falhou. Veja o log para detalhes."
+      "unknown": "O gerenciador de pacotes falhou. Veja o log para detalhes.",
+      "unavailable": "O gerenciador de pacotes (tlmgr) não está disponível nesta distribuição TeX. Instale o pacote manualmente."
     }
   },
   "installer": {
@@ -330,10 +338,10 @@
     "explain": {
       "undefinedControlSequence": "O comando não foi reconhecido. Verifique erros de digitação ou um \\usepackage faltando.",
       "missingDollar": "Símbolos matemáticos (como _ ou ^) foram usados fora do modo matemático. Envolva a fórmula em $…$.",
-      "missingBrace": "Falta um { ou }. Confira se todas as chaves estão em pares.",
-      "extraBrace": "Há um } sobrando ou uma fórmula matemática ficou aberta.",
-      "tooManyBraces": "Há um } a mais do que o necessário.",
-      "runaway": "O argumento de um comando nunca foi fechado. Procure um } faltando acima.",
+      "missingBrace": "Falta um {'{'} ou {'}'}. Confira se todas as chaves estão em pares.",
+      "extraBrace": "Há um {'}'} sobrando ou uma fórmula matemática ficou aberta.",
+      "tooManyBraces": "Há um {'}'} a mais do que o necessário.",
+      "runaway": "O argumento de um comando nunca foi fechado. Procure um {'}'} faltando acima.",
       "paragraphEnded": "Apareceu uma linha em branco dentro do argumento de um comando. Remova a linha vazia.",
       "misplacedAlignment": "O caractere & só vale em tabelas. Use \\& para imprimir um &.",
       "missingNumber": "Era esperado um número aqui. Confira os argumentos do comando.",
@@ -361,5 +369,36 @@
       "bibSyntax": "Há um erro de sintaxe na entrada do .bib (vírgula, chave ou aspas faltando).",
       "latexmkFailed": "O latexmk falhou antes de executar o TeX. Veja a saída na aba Log."
     }
+  },
+  "resources": {
+    "title": "Recursos baixados",
+    "hint": "Arquivos baixados e instalados pelo TexLocal. Remover libera espaço em disco.",
+    "refresh": "Atualizar",
+    "loading": "Carregando…",
+    "empty": "Nenhum recurso baixado.",
+    "kind": {
+      "texTree": "TeX Live {year}",
+      "partial": "Instalação incompleta do TeX Live {year}",
+      "downloadCache": "Cache de downloads"
+    },
+    "inUse": "em uso",
+    "remove": "Remover",
+    "confirm": "Confirmar remoção",
+    "removing": "Removendo…",
+    "removed": "{name} removido.",
+    "removeFailed": "Não foi possível remover {name}.",
+    "listFailed": "Não foi possível listar os recursos.",
+    "total": "Total: {size}",
+    "busy": "Há uma instalação em andamento; a remoção fica indisponível até ela terminar."
+  },
+  "packages": {
+    "missing": "Falta o pacote: {names} | Faltam os pacotes: {names}",
+    "files": "Arquivos não encontrados: {files}",
+    "install": "Instalar e recompilar",
+    "installingShort": "Instalando…",
+    "ignore": "Ignorar",
+    "installing": "Instalando {names}",
+    "installed": "Instalado: {names}.",
+    "unresolved": "Não encontrei pacote do TeX Live para: {files}. Se for um arquivo seu, confira o nome e o caminho."
   }
 }

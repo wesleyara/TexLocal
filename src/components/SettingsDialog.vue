@@ -8,10 +8,16 @@ import {
   findConflicts,
   formatBinding,
 } from '../commands/registry'
-import { validateSettings, type LocaleSetting, type ThemeSetting } from '../settings/schema'
+import {
+  validateSettings,
+  type AutoInstall,
+  type LocaleSetting,
+  type ThemeSetting,
+} from '../settings/schema'
 import { useNotificationsStore } from '../stores/notifications'
 import { useSettingsStore } from '../stores/settings'
 import { useUiStore } from '../stores/ui'
+import ResourcesPanel from './ResourcesPanel.vue'
 
 const { t } = useI18n()
 const ui = useUiStore()
@@ -109,7 +115,7 @@ function close() {
 <template>
   <div v-if="ui.settingsOpen" class="overlay" @mousedown.self="close">
     <div
-      class="dialog"
+      class="app-dialog"
       role="dialog"
       aria-modal="true"
       :aria-label="t('settings.title')"
@@ -149,6 +155,23 @@ function close() {
 
         <label class="row">
           <span>
+            {{ t('settings.texAutoInstall') }}
+            <small class="hint">{{ t('settings.texAutoInstallHint') }}</small>
+          </span>
+          <select
+            :value="settings.effective.texAutoInstall"
+            @change="
+              save({ texAutoInstall: ($event.target as HTMLSelectElement).value as AutoInstall })
+            "
+          >
+            <option value="ask">{{ t('settings.autoInstallAsk') }}</option>
+            <option value="auto">{{ t('settings.autoInstallAuto') }}</option>
+            <option value="never">{{ t('settings.autoInstallNever') }}</option>
+          </select>
+        </label>
+
+        <label class="row">
+          <span>
             {{ t('settings.texMirror') }}
             <small class="hint">{{ t('settings.texMirrorHint') }}</small>
           </span>
@@ -161,6 +184,8 @@ function close() {
           />
         </label>
         <button class="row-btn" @click="ui.wizardOpen = true">{{ t('settings.texWizard') }}</button>
+
+        <ResourcesPanel />
 
         <h2>{{ t('settings.shortcuts') }}</h2>
         <ul class="shortcuts">
@@ -198,7 +223,7 @@ function close() {
   align-items: center;
   background: rgb(0 0 0 / 35%);
 }
-.dialog {
+.app-dialog {
   display: flex;
   flex-direction: column;
   width: min(640px, 92vw);

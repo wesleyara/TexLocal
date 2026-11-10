@@ -28,6 +28,10 @@ pub struct CompileRequest {
     /// Diretório `bin` da distribuição TeX escolhida. `None` usa o PATH do sistema.
     pub bin_dir: Option<PathBuf>,
     pub manifest: Manifest,
+    /// Passa `-g` ao latexmk: recompila mesmo sem mudança nos arquivos. Necessário depois de
+    /// instalar um pacote, porque o latexmk não reavalia um arquivo que faltava no TeX instalado
+    /// e responde "Nothing to do" com o erro da execução anterior.
+    pub force: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
@@ -136,6 +140,14 @@ pub fn latexmk_args(manifest: &Manifest, uses_glossaries: bool) -> Vec<String> {
         args.push(GLOSSARIES_RULES.to_owned());
     }
     args.push(manifest.project.main.clone());
+    args
+}
+
+/// Acrescenta `-g` (recompilar mesmo sem mudanças) quando `force`.
+pub fn with_force(mut args: Vec<String>, force: bool) -> Vec<String> {
+    if force {
+        args.insert(0, "-g".to_owned());
+    }
     args
 }
 
@@ -286,8 +298,11 @@ pub fn compile(req: &CompileRequest, cancel: &AtomicBool) -> Result<CompileOutco
     let synctex_path = outdir.join(format!("{stem}.synctex.gz"));
 
     let mut cmd = process::prepare(&latexmk);
-    cmd.args(latexmk_args(manifest, uses_glossaries))
-        .current_dir(&req.project_dir);
+    cmd.args(with_force(
+        latexmk_args(manifest, uses_glossaries),
+        req.force,
+    ))
+    .current_dir(&req.project_dir);
     if let Some(bin) = &req.bin_dir {
         cmd.env("PATH", path_with(bin, std::env::var_os("PATH")));
     }
@@ -384,6 +399,15 @@ mod tests {
     use super::*;
 
     #[test]
+    fn force_adds_g_only_when_requested() {
+        let m = Manifest::default();
+        assert!(!with_force(latexmk_args(&m, false), false).contains(&"-g".to_owned()));
+        let forced = with_force(latexmk_args(&m, false), true);
+        assert_eq!(forced[0], "-g");
+        assert_eq!(forced.last(), latexmk_args(&m, false).last());
+    }
+
+    #[test]
     fn args_follow_the_manifest() {
         let mut m = Manifest::default();
         m.project.main = "tese.tex".into();
@@ -472,6 +496,7 @@ mod tests {
             project_dir: dir.path().to_path_buf(),
             bin_dir: Some(bin.path().to_path_buf()),
             manifest: Manifest::default(),
+            force: false,
         };
         let cancel = AtomicBool::new(false);
         assert_eq!(
@@ -526,6 +551,7 @@ mod tests {
                 project_dir: proj.path().to_path_buf(),
                 bin_dir: Some(bin.path().to_path_buf()),
                 manifest,
+                force: false,
             };
             (proj, bin, req)
         }

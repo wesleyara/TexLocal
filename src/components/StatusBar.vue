@@ -7,6 +7,7 @@ import { useEditorStore } from '../stores/editor'
 import { useNotificationsStore } from '../stores/notifications'
 import { useProjectStore } from '../stores/project'
 import { useUiStore } from '../stores/ui'
+import AppIcon from './AppIcon.vue'
 import NotificationCenter from './NotificationCenter.vue'
 
 const { t } = useI18n()
@@ -64,13 +65,13 @@ const compileLabel = computed(() => t(`compile.state.${compile.state}`))
 const compileIcon = computed(
   () =>
     ({
-      idle: '○',
-      running: '⟳',
-      success: '✔',
-      failed: '✖',
-      cancelled: '■',
-      timedOut: '⏱',
-      error: '✖',
+      idle: 'checkbox-blank-circle-outline',
+      running: 'sync',
+      success: 'check-circle',
+      failed: 'alert-circle',
+      cancelled: 'stop-circle-outline',
+      timedOut: 'timer-outline',
+      error: 'alert-circle',
     })[compile.state],
 )
 
@@ -91,9 +92,11 @@ function toggleProblems() {
       :aria-label="`${t('status.compile')}: ${compileLabel}`"
       @click="toggleProblems"
     >
-      <span aria-hidden="true">{{ compileIcon }}</span> {{ compileLabel }}
+      <AppIcon :name="compileIcon" :size="14" :class="{ spin: compile.state === 'running' }" />
+      {{ compileLabel }}
       <template v-if="compile.counts.errors || compile.counts.warnings">
-        · ✖ {{ compile.counts.errors }} · ▲ {{ compile.counts.warnings }}
+        · <AppIcon name="alert-circle" :size="13" /> {{ compile.counts.errors }} ·
+        <AppIcon name="alert" :size="13" /> {{ compile.counts.warnings }}
       </template>
     </button>
     <button
@@ -136,13 +139,26 @@ function toggleProblems() {
     </span>
     <span class="spacer" />
     <button
+      v-for="task in notifications.tasks"
+      :key="task.id"
+      class="item btn task"
+      :title="t('notify.openTask', { title: task.title })"
+      @click="task.open ? task.open() : (centerOpen = true)"
+    >
+      <AppIcon name="download" :size="13" /> {{ task.title }}
+      <template v-if="task.progress !== null"> · {{ Math.round(task.progress * 100) }}%</template>
+    </button>
+    <button
       class="bell"
       :title="t('status.notifications')"
       :aria-label="t('status.notifications')"
       :aria-expanded="centerOpen"
       @click="centerOpen = !centerOpen"
     >
-      🔔
+      <AppIcon
+        :name="notifications.tasks.length ? 'bell-badge-outline' : 'bell-outline'"
+        :size="15"
+      />
       <span v-if="notifications.tasks.length" class="badge">{{ notifications.tasks.length }}</span>
     </button>
     <NotificationCenter v-if="centerOpen" @close="centerOpen = false" />
@@ -201,6 +217,25 @@ function toggleProblems() {
 }
 .btn:disabled {
   cursor: default;
+}
+.compile {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.spin {
+  animation: spin 1.2s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.task {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--accent);
 }
 .compile.failed,
 .compile.error,

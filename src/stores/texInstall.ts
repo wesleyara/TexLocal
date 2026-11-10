@@ -12,6 +12,7 @@ import {
 } from '../tex/api'
 import { useNotificationsStore } from './notifications'
 import { useSettingsStore } from './settings'
+import { useUiStore } from './ui'
 
 export type InstallStatus = 'idle' | 'running' | 'done' | 'error'
 
@@ -25,11 +26,16 @@ export const useTexInstallStore = defineStore('texInstall', () => {
     if (status.value === 'running') return false
     const notifications = useNotificationsStore()
     const settings = useSettingsStore()
+    const ui = useUiStore()
 
     status.value = 'running'
     event.value = null
     error.value = null
-    const taskId = notifications.startTask(t('installer.task'), () => void cancelInstall())
+    const taskId = notifications.startTask(
+      t('installer.task'),
+      () => void cancelInstall(),
+      () => (ui.wizardOpen = true),
+    )
     const unlisten = await onInstallEvent((e) => {
       event.value = e
       notifications.updateTask(taskId, e.progress)

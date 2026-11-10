@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import ptBR from './pt-BR.json'
 import en from './en.json'
+import { createI18n } from 'vue-i18n'
 import { detectLocale } from './index'
 
 function flatten(obj: Record<string, unknown>, prefix = ''): string[] {
@@ -16,6 +17,19 @@ describe('i18n', () => {
     const a = flatten(ptBR).sort()
     const b = flatten(en).sort()
     expect(a).toEqual(b)
+  })
+
+  it('todas as mensagens compilam (sintaxe do vue-i18n, não ICU)', () => {
+    for (const [locale, messages] of [
+      ['pt-BR', ptBR],
+      ['en', en],
+    ] as const) {
+      const i18n = createI18n({ legacy: false, locale, messages: { [locale]: messages } })
+      for (const key of flatten(messages)) {
+        // Mensagem inválida lança erro de compilação ao ser formatada.
+        expect(() => i18n.global.t(key), `${locale}: ${key}`).not.toThrow()
+      }
+    }
   })
 
   it('detecta idioma', () => {

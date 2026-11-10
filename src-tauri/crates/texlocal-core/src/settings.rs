@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 const THEMES: [&str; 3] = ["system", "dark", "light"];
 const LOCALES: [&str; 3] = ["auto", "pt-BR", "en"];
 const TEX_SOURCES: [&str; 4] = ["unset", "system", "managed", "skipped"];
+const AUTO_INSTALL: [&str; 3] = ["ask", "auto", "never"];
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
@@ -25,6 +26,9 @@ pub struct Settings {
     /// Espelho CTAN fixado pelo usuário (vazio = automático).
     #[serde(rename = "texMirror", skip_serializing_if = "Option::is_none")]
     pub tex_mirror: Option<String>,
+    /// Pacote faltante na compilação: `ask` (perguntar), `auto` (instalar sozinho) ou `never`.
+    #[serde(rename = "texAutoInstall")]
+    pub tex_auto_install: String,
 }
 
 impl Default for Settings {
@@ -36,6 +40,7 @@ impl Default for Settings {
             tex_source: "unset".into(),
             tex_bin_dir: None,
             tex_mirror: None,
+            tex_auto_install: "ask".into(),
         }
     }
 }
@@ -77,6 +82,12 @@ impl Settings {
             return Err(SettingsError::InvalidValue {
                 field: "texSource",
                 value: self.tex_source.clone(),
+            });
+        }
+        if !AUTO_INSTALL.contains(&self.tex_auto_install.as_str()) {
+            return Err(SettingsError::InvalidValue {
+                field: "texAutoInstall",
+                value: self.tex_auto_install.clone(),
             });
         }
         Ok(())
@@ -126,6 +137,14 @@ mod tests {
         let m = Settings::from_json(r#"{"texMirror":"https://m.example/tlnet"}"#).unwrap();
         assert_eq!(m.tex_mirror.as_deref(), Some("https://m.example/tlnet"));
         assert_eq!(Settings::default().tex_source, "unset");
+    }
+
+    #[test]
+    fn auto_install_defaults_to_ask_and_is_validated() {
+        assert_eq!(Settings::default().tex_auto_install, "ask");
+        let s = Settings::from_json(r#"{"texAutoInstall":"auto"}"#).unwrap();
+        assert_eq!(s.tex_auto_install, "auto");
+        assert!(Settings::from_json(r#"{"texAutoInstall":"sempre"}"#).is_err());
     }
 
     #[test]

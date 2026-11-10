@@ -15,6 +15,8 @@ export interface BackgroundTask {
   /** 0..1, ou null para progresso indeterminado. */
   progress: number | null
   cancel?: () => void
+  /** Reabre a tela da tarefa (ex.: o assistente de instalação minimizado). */
+  open?: () => void
 }
 
 export const useNotificationsStore = defineStore('notifications', () => {
@@ -39,8 +41,8 @@ export const useNotificationsStore = defineStore('notifications', () => {
     history.value = []
   }
 
-  function startTask(title: string, cancel?: () => void): number {
-    const task: BackgroundTask = { id: ++seq, title, progress: null, cancel }
+  function startTask(title: string, cancel?: () => void, open?: () => void): number {
+    const task: BackgroundTask = { id: ++seq, title, progress: null, cancel, open }
     tasks.value.push(task)
     return task.id
   }
