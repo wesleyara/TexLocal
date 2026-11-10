@@ -3,6 +3,7 @@ import { reactive, ref, watch } from 'vue'
 
 export type ViewMode = 'split' | 'editor' | 'pdf'
 export type PaletteMode = 'commands' | 'files' | null
+export type SidebarPanel = 'files' | 'search'
 
 export interface LayoutState {
   sidebarVisible: boolean
@@ -50,6 +51,9 @@ export const useUiStore = defineStore('ui', () => {
   const paletteMode = ref<PaletteMode>(null)
   const settingsOpen = ref(false)
   const wizardOpen = ref(false)
+  const sidebarPanel = ref<SidebarPanel>('files')
+  /** Incrementa para pedir foco no campo de busca do projeto. */
+  const searchFocusTick = ref(0)
 
   watch(
     layout,
@@ -74,6 +78,15 @@ export const useUiStore = defineStore('ui', () => {
   function toggleBottom() {
     layout.bottomVisible = !layout.bottomVisible
   }
+  function showSidebarPanel(panel: SidebarPanel) {
+    if (layout.sidebarVisible && sidebarPanel.value === panel && panel === 'files') {
+      layout.sidebarVisible = false
+      return
+    }
+    sidebarPanel.value = panel
+    layout.sidebarVisible = true
+    if (panel === 'search') searchFocusTick.value++
+  }
   function setViewMode(mode: ViewMode) {
     layout.viewMode = mode
   }
@@ -87,6 +100,9 @@ export const useUiStore = defineStore('ui', () => {
     paletteMode,
     settingsOpen,
     wizardOpen,
+    sidebarPanel,
+    searchFocusTick,
+    showSidebarPanel,
     setProject,
     toggleSidebar,
     toggleBottom,

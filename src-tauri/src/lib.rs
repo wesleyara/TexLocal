@@ -1,3 +1,4 @@
+mod editor_commands;
 mod tex_commands;
 
 use std::fs;
@@ -41,7 +42,9 @@ fn save_settings(app: tauri::AppHandle, settings: Settings) -> Result<(), String
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .manage(tex_commands::InstallState::default())
+        .manage(editor_commands::ProjectState::default())
         .invoke_handler(tauri::generate_handler![
             app_version,
             get_settings,
@@ -52,7 +55,22 @@ pub fn run() {
             tex_commands::project_manifest,
             tex_commands::save_project_manifest,
             tex_commands::tex_install,
-            tex_commands::tex_install_cancel
+            tex_commands::tex_install_cancel,
+            editor_commands::file_read,
+            editor_commands::file_write,
+            editor_commands::project_files,
+            editor_commands::project_open,
+            editor_commands::index_update,
+            editor_commands::index_remove,
+            editor_commands::project_search,
+            editor_commands::project_replace,
+            editor_commands::word_count_text,
+            editor_commands::word_count_files,
+            editor_commands::spell_configure,
+            editor_commands::spell_check,
+            editor_commands::spell_suggest,
+            editor_commands::spell_detect_language,
+            editor_commands::spell_add_word
         ])
         .run(tauri::generate_context!())
         .expect("erro ao executar o TexLocal");

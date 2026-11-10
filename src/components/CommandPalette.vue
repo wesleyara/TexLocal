@@ -8,12 +8,16 @@ import {
   fuzzyScore,
   type Command,
 } from '../commands/registry'
+import { useEditorStore } from '../stores/editor'
+import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
 import { useUiStore } from '../stores/ui'
 
 const { t } = useI18n()
 const ui = useUiStore()
 const settings = useSettingsStore()
+const project = useProjectStore()
+const editor = useEditorStore()
 
 const RECENT_KEY = 'texlocal.palette.recent.v1'
 const query = ref('')
@@ -54,6 +58,23 @@ const rows = computed<Row[]>(() => {
     .map((x) => x.r)
 })
 
+const fileRows = computed(() => {
+  const q = query.value.trim()
+  const all = project.files
+  if (!q) return all.slice(0, 50)
+  return all
+    .map((f) => ({ f, s: fuzzyScore(q, f) }))
+    .filter((x): x is { f: string; s: number } => x.s !== null)
+    .sort((a, b) => b.s - a.s)
+    .slice(0, 50)
+    .map((x) => x.f)
+})
+
+function openFileRow(file: string) {
+  close()
+  void editor.openFile(project.absolute(file))
+}
+
 watch(
   () => ui.paletteMode,
   async (mode) => {
@@ -85,13 +106,17 @@ function run(row: Row) {
 function onKey(e: KeyboardEvent) {
   if (e.key === 'ArrowDown') {
     e.preventDefault()
-    active.value = Math.min(active.value + 1, rows.value.length - 1)
+    const max = (ui.paletteMode === 'files' ? fileRows.value.length : rows.value.length) - 1
+    active.value = Math.min(active.value + 1, max)
   } else if (e.key === 'ArrowUp') {
     e.preventDefault()
     active.value = Math.max(active.value - 1, 0)
   } else if (e.key === 'Enter' && ui.paletteMode === 'commands') {
     const row = rows.value[active.value]
     if (row) run(row)
+  } else if (e.key === 'Enter' && ui.paletteMode === 'files') {
+    const file = fileRows.value[active.value]
+    if (file) openFileRow(file)
   } else if (e.key === 'Escape') {
     close()
   }
@@ -129,6 +154,22 @@ function onKey(e: KeyboardEvent) {
           </li>
         </ul>
         <p v-if="!rows.length" class="empty">{{ t('palette.noResults') }}</p>
+      </template>
+      <template v-else-if="project.root">
+        <ul id="palette-list" role="listbox">
+          <li
+            v-for="(f, i) in fileRows"
+            :key="f"
+            role="option"
+            :aria-selected="i === active"
+            :class="{ active: i === active }"
+            @mousemove="active = i"
+            @click="openFileRow(f)"
+          >
+            <span>{{ f }}</span>
+          </li>
+        </ul>
+        <p v-if="!fileRows.length" class="empty">{{ t('palette.noResults') }}</p>
       </template>
       <p v-else class="empty">{{ t('palette.noFiles') }}</p>
     </div>

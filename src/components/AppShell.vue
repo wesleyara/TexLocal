@@ -5,7 +5,13 @@ import { allCommands, effectiveBinding, matchesEvent } from '../commands/registr
 import { useSettingsStore } from '../stores/settings'
 import { useUiStore } from '../stores/ui'
 import ActivityBar from './ActivityBar.vue'
+import BottomPanel from './BottomPanel.vue'
 import CommandPalette from './CommandPalette.vue'
+import EditorPane from './EditorPane.vue'
+import FileTree from './FileTree.vue'
+import OutlinePanel from './OutlinePanel.vue'
+import RenameDialog from './RenameDialog.vue'
+import SearchPanel from './SearchPanel.vue'
 import SettingsDialog from './SettingsDialog.vue'
 import SplitHandle from './SplitHandle.vue'
 import StatusBar from './StatusBar.vue'
@@ -49,8 +55,12 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
       <template v-if="ui.layout.sidebarVisible">
         <aside class="sidebar" :style="{ width: ui.layout.sidebarWidth + 'px' }">
-          <h2>{{ t('sidebar.files') }}</h2>
-          <p class="muted">{{ t('sidebar.empty') }}</p>
+          <template v-if="ui.sidebarPanel === 'files'">
+            <h2>{{ t('sidebar.files') }}</h2>
+            <FileTree />
+            <OutlinePanel />
+          </template>
+          <SearchPanel v-else />
         </aside>
         <SplitHandle
           orientation="vertical"
@@ -62,8 +72,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       <div class="main">
         <div class="panes">
           <section v-if="ui.layout.viewMode !== 'pdf'" class="pane editor">
-            <h2>{{ t('editor.title') }}</h2>
-            <p class="muted">{{ t('editor.placeholder') }}</p>
+            <EditorPane />
           </section>
 
           <SplitHandle
@@ -94,8 +103,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
             @resize="(d) => ui.resize('bottomHeight', ui.layout.bottomHeight - d)"
           />
           <section class="bottom" :style="{ height: ui.layout.bottomHeight + 'px' }">
-            <h2>{{ t('bottom.problems') }}</h2>
-            <p class="muted">{{ t('bottom.noProblems') }}</p>
+            <BottomPanel />
           </section>
         </template>
       </div>
@@ -104,6 +112,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     <CommandPalette />
     <SettingsDialog />
     <TexWizard />
+    <RenameDialog />
     <ToastHost />
   </div>
 </template>
@@ -143,6 +152,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   min-width: 0;
   padding: var(--space-3);
   overflow: auto;
+}
+.pane.editor {
+  display: flex;
+  padding: 0;
+  overflow: hidden;
 }
 .pdf {
   background: var(--bg-panel);

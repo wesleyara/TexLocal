@@ -14,6 +14,12 @@
   --danger: #ff8080;
   --success: #6fd09a;
   --focus: #8fbfff;
+  --syn-keyword: #7cb7ff;
+  --syn-comment: #8a93a6;
+  --syn-env: #e6b86a;
+  --syn-bracket: #b0b8c6;
+  --syn-math: #7fd6b0;
+  --syn-string: #d9a07a;
 }
 
 :root[data-theme='light'] {
@@ -30,6 +36,12 @@
   --danger: #b42318;
   --success: #166534;
   --focus: #1d5fd1;
+  --syn-keyword: #0b57c4;
+  --syn-comment: #5b6472;
+  --syn-env: #8a5a00;
+  --syn-bracket: #4b5563;
+  --syn-math: #0c6b4b;
+  --syn-string: #9a4a1a;
 }
 
 :root {
