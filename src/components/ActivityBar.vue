@@ -22,11 +22,13 @@ const items = [
       :title="t(i.key)"
       :aria-label="t(i.key)"
       :aria-pressed="
-        (i.id === 'files' || i.id === 'search') &&
+        (i.id === 'files' || i.id === 'search' || i.id === 'history') &&
         ui.layout.sidebarVisible &&
         ui.sidebarPanel === i.id
       "
-      @click="(i.id === 'files' || i.id === 'search') && ui.showSidebarPanel(i.id)"
+      @click="
+        (i.id === 'files' || i.id === 'search' || i.id === 'history') && ui.showSidebarPanel(i.id)
+      "
     >
       <AppIcon :name="i.icon" :size="22" />
     </button>

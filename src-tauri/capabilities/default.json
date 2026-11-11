@@ -3,5 +3,10 @@
   "identifier": "default",
   "description": "Permissões da janela principal",
   "windows": ["main"],
-  "permissions": ["core:default", "core:webview:allow-set-webview-zoom", "dialog:default"]
+  "permissions": [
+    "core:default",
+    "core:webview:allow-set-webview-zoom",
+    "core:window:allow-destroy",
+    "dialog:default"
+  ]
 }

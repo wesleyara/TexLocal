@@ -10,6 +10,9 @@ import BottomPanel from './BottomPanel.vue'
 import CommandPalette from './CommandPalette.vue'
 import EditorPane from './EditorPane.vue'
 import FileTree from './FileTree.vue'
+import HistoryDialogs from './HistoryDialogs.vue'
+import HistoryDiff from './HistoryDiff.vue'
+import HistoryPanel from './HistoryPanel.vue'
 import OutlinePanel from './OutlinePanel.vue'
 import PdfViewer from './PdfViewer.vue'
 import RenameDialog from './RenameDialog.vue'
@@ -79,6 +82,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
             <FileTree />
             <OutlinePanel />
           </template>
+          <HistoryPanel v-else-if="ui.sidebarPanel === 'history'" />
           <SearchPanel v-else />
         </aside>
         <SplitHandle
@@ -132,6 +136,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     <SnippetsDialog />
     <TexWizard />
     <RenameDialog />
+    <HistoryDialogs />
+    <HistoryDiff />
     <ToastHost />
   </div>
 </template>

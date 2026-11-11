@@ -1,5 +1,6 @@
 mod compile_commands;
 mod editor_commands;
+mod history_commands;
 mod snippet_commands;
 mod tex_commands;
 
@@ -60,6 +61,7 @@ pub fn run() {
         .manage(editor_commands::ProjectState::default())
         .manage(compile_commands::CompileState::default())
         .manage(snippet_commands::SnippetWatchState::default())
+        .manage(history_commands::HistoryState::default())
         .invoke_handler(tauri::generate_handler![
             app_version,
             get_settings,
@@ -101,7 +103,25 @@ pub fn run() {
             editor_commands::spell_detect_language,
             editor_commands::spell_add_word,
             snippet_commands::snippets_load,
-            snippet_commands::snippets_watch
+            snippet_commands::snippets_watch,
+            history_commands::history_identity_get,
+            history_commands::history_identity_set,
+            history_commands::history_status,
+            history_commands::history_init,
+            history_commands::history_checkpoint,
+            history_commands::history_commit,
+            history_commands::history_stage,
+            history_commands::history_log,
+            history_commands::history_changed,
+            history_commands::history_sides,
+            history_commands::history_tags,
+            history_commands::history_tag_create,
+            history_commands::history_tag_rename,
+            history_commands::history_tag_delete,
+            history_commands::history_restore,
+            history_commands::history_restore_text,
+            history_commands::history_export_zip,
+            history_commands::history_export_pdf
         ])
         .run(tauri::generate_context!())
         .expect("erro ao executar o TexLocal");

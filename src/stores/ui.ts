@@ -3,7 +3,7 @@ import { reactive, ref, watch } from 'vue'
 
 export type ViewMode = 'split' | 'editor' | 'pdf'
 export type PaletteMode = 'commands' | 'files' | 'snippets' | null
-export type SidebarPanel = 'files' | 'search'
+export type SidebarPanel = 'files' | 'search' | 'history'
 
 export interface LayoutState {
   sidebarVisible: boolean
