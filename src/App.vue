@@ -9,6 +9,7 @@ import { useSnippetsStore } from './stores/snippets'
 import { applyZoom } from './settings/zoom'
 import { useNotificationsStore } from './stores/notifications'
 import { useUiStore } from './stores/ui'
+import { useHistoryStore } from './stores/history'
 
 const settings = useSettingsStore()
 const ui = useUiStore()
@@ -16,6 +17,7 @@ const project = useProjectStore()
 const editor = useEditorStore()
 const notifications = useNotificationsStore()
 const snippets = useSnippetsStore()
+const history = useHistoryStore()
 
 onMounted(async () => {
   await settings.load()
@@ -32,6 +34,7 @@ onMounted(async () => {
     }
   }
   await snippets.init().catch(() => undefined)
+  await history.installCloseHook().catch(() => undefined)
 })
 
 const dark = window.matchMedia('(prefers-color-scheme: dark)')

@@ -9,6 +9,7 @@ import { i18n } from '../i18n'
 import { useNotificationsStore } from '../stores/notifications'
 import { clampZoom } from '../settings/zoom'
 import { useSnippetsStore } from '../stores/snippets'
+import { useHistoryStore } from '../stores/history'
 import { registerCommand } from './registry'
 
 async function openFolder() {
@@ -261,6 +262,21 @@ export function registerBuiltinCommands(): void {
     titleKey: 'cmd.insertSnippet',
     keybinding: 'Mod+Alt+I',
     run: () => (ui().paletteMode = 'snippets'),
+  })
+  registerCommand({
+    id: 'history.open',
+    titleKey: 'cmd.historyOpen',
+    run: () => useUiStore().showSidebarPanel('history'),
+  })
+  registerCommand({
+    id: 'history.checkpoint',
+    titleKey: 'cmd.historyCheckpoint',
+    run: () => void useHistoryStore().checkpoint(),
+  })
+  registerCommand({
+    id: 'history.name',
+    titleKey: 'cmd.historyName',
+    run: () => (useHistoryStore().nameDialog = { target: null }),
   })
   registerCommand({
     id: 'snippets.manage',

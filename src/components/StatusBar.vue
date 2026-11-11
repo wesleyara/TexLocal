@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { wordCountFiles, type Encoding, type ProjectCount } from '../project/api'
 import { useCompileStore } from '../stores/compile'
 import { useEditorStore } from '../stores/editor'
+import { useHistoryStore } from '../stores/history'
 import { useNotificationsStore } from '../stores/notifications'
 import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
@@ -76,11 +77,12 @@ function toggleEol() {
   if (tab) editor.setEol(tab.path, tab.eol === 'lf' ? 'crlf' : 'lf')
 }
 
-// Valores reais de git chegam com os épicos EP06/07.
-const placeholders = [
-  { key: 'status.branch', value: '—' },
+// Branch vem do histórico (EP06); a sincronização chega com o EP07.
+const history = useHistoryStore()
+const placeholders = computed(() => [
+  { key: 'status.branch', value: history.status.branch ?? '—' },
   { key: 'status.sync', value: '—' },
-]
+])
 
 const compileLabel = computed(() => t(`compile.state.${compile.state}`))
 const compileIcon = computed(
