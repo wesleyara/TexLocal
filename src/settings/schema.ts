@@ -3,6 +3,7 @@ export type LocaleSetting = 'auto' | 'pt-BR' | 'en'
 export type TexSource = 'unset' | 'system' | 'managed' | 'skipped'
 /** Pacote faltante na compilação: perguntar, instalar sozinho ou nunca. */
 export type AutoInstall = 'ask' | 'auto' | 'never'
+export type SnippetOrder = 'before' | 'after'
 
 export interface Settings {
   theme: ThemeSetting
@@ -18,6 +19,10 @@ export interface Settings {
   texAutoInstall: AutoInstall
   /** Zoom da interface (cada passo = 20%); 0 = 100%. */
   zoomLevel: number
+  /** Categorias da biblioteca padrão de snippets desativadas. */
+  snippetsDisabled: string[]
+  /** Snippets antes (`before`) ou depois (`after`) dos comandos no autocomplete. */
+  snippetsOrder: SnippetOrder
 }
 
 export const ZOOM_MIN = -4
@@ -30,6 +35,8 @@ export const DEFAULT_SETTINGS: Settings = {
   texSource: 'unset',
   texAutoInstall: 'ask',
   zoomLevel: 0,
+  snippetsDisabled: [],
+  snippetsOrder: 'before',
 }
 
 const THEMES: ThemeSetting[] = ['system', 'dark', 'light']
@@ -70,6 +77,14 @@ export function validateSettings(value: unknown): Settings {
   ) {
     throw new Error(`zoomLevel inválido: ${String(zoomLevel)}`)
   }
+  const snippetsDisabled = v.snippetsDisabled ?? DEFAULT_SETTINGS.snippetsDisabled
+  if (!Array.isArray(snippetsDisabled) || snippetsDisabled.some((x) => typeof x !== 'string')) {
+    throw new Error('snippetsDisabled deve ser uma lista de textos')
+  }
+  const snippetsOrder = v.snippetsOrder ?? DEFAULT_SETTINGS.snippetsOrder
+  if (snippetsOrder !== 'before' && snippetsOrder !== 'after') {
+    throw new Error(`snippetsOrder inválido: ${String(snippetsOrder)}`)
+  }
   if (v.texBinDir !== undefined && typeof v.texBinDir !== 'string') {
     throw new Error('texBinDir deve ser texto')
   }
@@ -90,6 +105,8 @@ export function validateSettings(value: unknown): Settings {
     texSource: texSource as TexSource,
     texAutoInstall: texAutoInstall as AutoInstall,
     zoomLevel,
+    snippetsDisabled: [...(snippetsDisabled as string[])],
+    snippetsOrder,
     ...(v.texBinDir !== undefined ? { texBinDir: v.texBinDir as string } : {}),
     ...(v.texMirror !== undefined ? { texMirror: v.texMirror as string } : {}),
   }

@@ -152,38 +152,40 @@ function toggleProblems() {
     >
       <span class="sr-only">{{ t('status.eol') }}:</span>{{ eol }}
     </button>
-    <button
-      class="item btn"
-      :title="t('status.encodingChange')"
-      :disabled="!editor.activeTab"
-      :aria-expanded="encMenuOpen"
-      aria-haspopup="menu"
-      @click="encMenuOpen = !encMenuOpen"
-    >
-      <span class="sr-only">{{ t('status.encoding') }}:</span>{{ encoding }}
-    </button>
-    <div
-      v-if="encMenuOpen && editor.activeTab"
-      class="encmenu"
-      role="menu"
-      @keydown.esc="encMenuOpen = false"
-    >
-      <div v-for="mode in ['reopen', 'save'] as const" :key="mode" class="group">
-        <p class="head">
-          {{ t(mode === 'reopen' ? 'status.encodingReopen' : 'status.encodingSave') }}
-        </p>
-        <button
-          v-for="e in ENCODINGS"
-          :key="e.id"
-          role="menuitem"
-          :disabled="mode === 'reopen' && editor.activeTab.dirty"
-          :class="{ current: e.id === editor.activeTab.encoding }"
-          @click="pickEncoding(mode, e.id)"
-        >
-          {{ e.label }}
-        </button>
+    <span class="anchor">
+      <button
+        class="item btn"
+        :title="t('status.encodingChange')"
+        :disabled="!editor.activeTab"
+        :aria-expanded="encMenuOpen"
+        aria-haspopup="menu"
+        @click="encMenuOpen = !encMenuOpen"
+      >
+        <span class="sr-only">{{ t('status.encoding') }}:</span>{{ encoding }}
+      </button>
+      <div
+        v-if="encMenuOpen && editor.activeTab"
+        class="encmenu"
+        role="menu"
+        @keydown.esc="encMenuOpen = false"
+      >
+        <div v-for="mode in ['reopen', 'save'] as const" :key="mode" class="group">
+          <p class="head">
+            {{ t(mode === 'reopen' ? 'status.encodingReopen' : 'status.encodingSave') }}
+          </p>
+          <button
+            v-for="e in ENCODINGS"
+            :key="e.id"
+            role="menuitem"
+            :disabled="mode === 'reopen' && editor.activeTab.dirty"
+            :class="{ current: e.id === editor.activeTab.encoding }"
+            @click="pickEncoding(mode, e.id)"
+          >
+            {{ e.label }}
+          </button>
+        </div>
       </div>
-    </div>
+    </span>
     <span class="item" :title="t('status.spell')">
       <span class="sr-only">{{ t('status.spell') }}:</span>{{ spell }}
     </span>
@@ -300,10 +302,15 @@ function toggleProblems() {
 .compile.timedOut {
   color: var(--danger);
 }
+.anchor {
+  position: relative;
+  display: inline-flex;
+}
 .encmenu {
   position: absolute;
-  bottom: 26px;
+  bottom: calc(100% + 6px);
   left: 50%;
+  transform: translateX(-50%);
   z-index: 30;
   display: flex;
   gap: var(--space-3);

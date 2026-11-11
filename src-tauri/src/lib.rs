@@ -1,5 +1,6 @@
 mod compile_commands;
 mod editor_commands;
+mod snippet_commands;
 mod tex_commands;
 
 use std::fs;
@@ -58,6 +59,7 @@ pub fn run() {
         .manage(tex_commands::PackageState::default())
         .manage(editor_commands::ProjectState::default())
         .manage(compile_commands::CompileState::default())
+        .manage(snippet_commands::SnippetWatchState::default())
         .invoke_handler(tauri::generate_handler![
             app_version,
             get_settings,
@@ -97,7 +99,9 @@ pub fn run() {
             editor_commands::spell_check,
             editor_commands::spell_suggest,
             editor_commands::spell_detect_language,
-            editor_commands::spell_add_word
+            editor_commands::spell_add_word,
+            snippet_commands::snippets_load,
+            snippet_commands::snippets_watch
         ])
         .run(tauri::generate_context!())
         .expect("erro ao executar o TexLocal");

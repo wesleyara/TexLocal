@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { formatBinding, effectiveBinding, getCommand } from '../commands/registry'
+import { commandTitle, formatBinding, effectiveBinding, getCommand } from '../commands/registry'
 import { useSettingsStore } from '../stores/settings'
 
 const { t } = useI18n()
@@ -59,7 +59,7 @@ const entries = computed(() =>
                 }
               "
             >
-              <span>{{ t(c.command.titleKey) }}</span>
+              <span>{{ commandTitle(c.command, t) }}</span>
               <kbd v-if="c.shortcut">{{ c.shortcut }}</kbd>
             </button>
           </li>

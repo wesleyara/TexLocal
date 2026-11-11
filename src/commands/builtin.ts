@@ -8,6 +8,7 @@ import { useUiStore } from '../stores/ui'
 import { i18n } from '../i18n'
 import { useNotificationsStore } from '../stores/notifications'
 import { clampZoom } from '../settings/zoom'
+import { useSnippetsStore } from '../stores/snippets'
 import { registerCommand } from './registry'
 
 async function openFolder() {
@@ -254,6 +255,40 @@ export function registerBuiltinCommands(): void {
     titleKey: 'cmd.searchProject',
     keybinding: 'Mod+Shift+F',
     run: () => useUiStore().showSidebarPanel('search'),
+  })
+  registerCommand({
+    id: 'snippets.insert',
+    titleKey: 'cmd.insertSnippet',
+    keybinding: 'Mod+Alt+I',
+    run: () => (ui().paletteMode = 'snippets'),
+  })
+  registerCommand({
+    id: 'snippets.manage',
+    titleKey: 'cmd.manageSnippets',
+    run: () => {
+      ui().snippetDraft = null
+      ui().snippetsOpen = true
+    },
+  })
+  registerCommand({
+    id: 'snippets.fromSelection',
+    titleKey: 'cmd.snippetFromSelection',
+    run: () => {
+      const view = getActiveView()
+      const sel = view?.state.selection.main
+      const text = view && sel ? view.state.sliceDoc(sel.from, sel.to) : ''
+      if (!text) {
+        useNotificationsStore().notify('info', i18n.global.t('snippets.noSelection'))
+        return
+      }
+      ui().snippetDraft = text.replace(/[\\$}]/g, '\\$&')
+      ui().snippetsOpen = true
+    },
+  })
+  registerCommand({
+    id: 'snippets.openGlobalJson',
+    titleKey: 'cmd.openSnippetsJson',
+    run: () => void useSnippetsStore().openJson('global'),
   })
   registerCommand({
     id: 'theme.toggle',

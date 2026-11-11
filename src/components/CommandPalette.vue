@@ -3,14 +3,18 @@ import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   allCommands,
+  commandTitle,
   effectiveBinding,
   formatBinding,
   fuzzyScore,
   type Command,
 } from '../commands/registry'
+import { languageIdFor } from '../editor/languages'
+import { appliesTo, searchSnippets, type Snippet } from '../snippets/model'
 import { useEditorStore } from '../stores/editor'
 import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
+import { useSnippetsStore } from '../stores/snippets'
 import { useUiStore } from '../stores/ui'
 
 const { t } = useI18n()
@@ -18,6 +22,7 @@ const ui = useUiStore()
 const settings = useSettingsStore()
 const project = useProjectStore()
 const editor = useEditorStore()
+const snippets = useSnippetsStore()
 
 const RECENT_KEY = 'texlocal.palette.recent.v1'
 const query = ref('')
@@ -42,7 +47,7 @@ interface Row {
 const rows = computed<Row[]>(() => {
   const all = allCommands().map((command) => {
     const b = effectiveBinding(command, settings.effective.keybindings)
-    return { command, title: t(command.titleKey), shortcut: b ? formatBinding(b) : '' }
+    return { command, title: commandTitle(command, t), shortcut: b ? formatBinding(b) : '' }
   })
   if (!query.value.trim()) {
     const order = (id: string) => {
@@ -69,6 +74,25 @@ const fileRows = computed(() => {
     .slice(0, 50)
     .map((x) => x.f)
 })
+
+const snippetRows = computed<Snippet[]>(() => {
+  const lang = editor.active ? languageIdFor(editor.active) : 'latex'
+  return searchSnippets(
+    snippets.all.filter((s) => appliesTo(s, lang)),
+    query.value,
+  ).slice(0, 60)
+})
+
+function runSnippet(s: Snippet) {
+  close()
+  void snippets.insertInActive(s)
+}
+
+function rowCount(): number {
+  if (ui.paletteMode === 'files') return fileRows.value.length
+  if (ui.paletteMode === 'snippets') return snippetRows.value.length
+  return rows.value.length
+}
 
 function openFileRow(file: string) {
   close()
@@ -106,14 +130,16 @@ function run(row: Row) {
 function onKey(e: KeyboardEvent) {
   if (e.key === 'ArrowDown') {
     e.preventDefault()
-    const max = (ui.paletteMode === 'files' ? fileRows.value.length : rows.value.length) - 1
-    active.value = Math.min(active.value + 1, max)
+    active.value = Math.min(active.value + 1, rowCount() - 1)
   } else if (e.key === 'ArrowUp') {
     e.preventDefault()
     active.value = Math.max(active.value - 1, 0)
   } else if (e.key === 'Enter' && ui.paletteMode === 'commands') {
     const row = rows.value[active.value]
     if (row) run(row)
+  } else if (e.key === 'Enter' && ui.paletteMode === 'snippets') {
+    const s = snippetRows.value[active.value]
+    if (s) runSnippet(s)
   } else if (e.key === 'Enter' && ui.paletteMode === 'files') {
     const file = fileRows.value[active.value]
     if (file) openFileRow(file)
@@ -135,7 +161,9 @@ function onKey(e: KeyboardEvent) {
         :placeholder="
           ui.paletteMode === 'files'
             ? t('palette.filesPlaceholder')
-            : t('palette.commandsPlaceholder')
+            : ui.paletteMode === 'snippets'
+              ? t('palette.snippetsPlaceholder')
+              : t('palette.commandsPlaceholder')
         "
       />
       <template v-if="ui.paletteMode === 'commands'">
@@ -154,6 +182,25 @@ function onKey(e: KeyboardEvent) {
           </li>
         </ul>
         <p v-if="!rows.length" class="empty">{{ t('palette.noResults') }}</p>
+      </template>
+      <template v-else-if="ui.paletteMode === 'snippets'">
+        <ul id="palette-list" role="listbox">
+          <li
+            v-for="(s, i) in snippetRows"
+            :key="s.id"
+            role="option"
+            :aria-selected="i === active"
+            :class="{ active: i === active }"
+            @mousemove="active = i"
+            @click="runSnippet(s)"
+          >
+            <span
+              >{{ s.name }}<small v-if="s.description"> — {{ s.description }}</small></span
+            >
+            <kbd>{{ s.prefixes[0] }}</kbd>
+          </li>
+        </ul>
+        <p v-if="!snippetRows.length" class="empty">{{ t('palette.noResults') }}</p>
       </template>
       <template v-else-if="project.root">
         <ul id="palette-list" role="listbox">
@@ -223,7 +270,10 @@ li.active {
   background: var(--accent);
   color: var(--accent-contrast);
 }
-li.active kbd {
+li.active small {
+  opacity: 0.7;
+}
+kbd {
   color: inherit;
 }
 kbd {

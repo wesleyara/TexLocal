@@ -16,6 +16,7 @@ import { useEditorStore } from '../stores/editor'
 import { usePackagesStore } from '../stores/packages'
 import { useProjectStore } from '../stores/project'
 import { useRefsStore } from '../stores/refs'
+import { useSnippetsStore } from '../stores/snippets'
 import AppIcon from './AppIcon.vue'
 
 const { t, te } = useI18n()
@@ -23,6 +24,7 @@ const editor = useEditorStore()
 const project = useProjectStore()
 const refs = useRefsStore()
 const compile = useCompileStore()
+const snippets = useSnippetsStore()
 const packages = usePackagesStore()
 
 const kind = ref<KindFilter>('all')
@@ -48,6 +50,12 @@ function rel(path: string) {
 function friendly(d: Diagnostic): string | null {
   const key = explanationKey(d)
   return key && te(key) ? t(key) : null
+}
+
+function openSnippetProblem(p: { file: string; line?: number }) {
+  // Problemas do padrão embutido não têm arquivo no disco.
+  if (!/[\\/]/.test(p.file)) return
+  void editor.openFile(p.file, { line: p.line ?? 0, col: 0 })
 }
 
 function open(d: Diagnostic) {
@@ -97,12 +105,24 @@ function open(d: Diagnostic) {
       </label>
     </div>
 
-    <p v-if="!hasCompiled && !labelIssues.length && !project.view.missing.length" class="muted">
+    <p
+      v-if="
+        !hasCompiled &&
+        !labelIssues.length &&
+        !project.view.missing.length &&
+        !snippets.problems.length
+      "
+      class="muted"
+    >
       {{ t('compile.notCompiled') }}
     </p>
     <p
       v-else-if="
-        hasCompiled && !shown.length && !labelIssues.length && !project.view.missing.length
+        hasCompiled &&
+        !shown.length &&
+        !labelIssues.length &&
+        !project.view.missing.length &&
+        !snippets.problems.length
       "
       class="muted"
     >
@@ -146,6 +166,17 @@ function open(d: Diagnostic) {
         /></span>
         <span class="msg">{{ t(p.messageKey, p.params) }}</span>
         <span class="loc">{{ p.line + 1 }}:{{ p.col + 1 }}</span>
+      </li>
+      <li
+        v-for="(p, i) in snippets.problems"
+        :key="`s${i}`"
+        class="row error"
+        tabindex="0"
+        @click="openSnippetProblem(p)"
+      >
+        <span class="sev"><AppIcon name="alert-circle" :size="15" /></span>
+        <span class="msg">{{ t('snippets.problem', { message: p.message }) }}</span>
+        <span class="loc">{{ rel(p.file) }}{{ p.line !== undefined ? `:${p.line + 1}` : '' }}</span>
       </li>
       <li v-for="m in project.view.missing" :key="m" class="row warning">
         <span class="sev"><AppIcon name="alert" :size="15" /></span>

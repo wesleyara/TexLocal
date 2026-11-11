@@ -124,7 +124,8 @@
     "filesPlaceholder": "Buscar arquivo por nome…",
     "noResults": "Nenhum resultado.",
     "noFiles": "Nenhum projeto aberto para buscar arquivos.",
-    "recent": "Recentes"
+    "recent": "Recentes",
+    "snippetsPlaceholder": "Buscar snippet…"
   },
   "cmd": {
     "palette": "Mostrar todos os comandos",
@@ -158,7 +159,11 @@
     "toggleAutoCompile": "Alternar compilação automática",
     "toggleShellEscape": "Alternar shell-escape (executa comandos do documento)",
     "syncToPdf": "Mostrar a posição do cursor no PDF",
-    "toggleBoxWarnings": "Mostrar/ocultar avisos de caixas overfull/underfull"
+    "toggleBoxWarnings": "Mostrar/ocultar avisos de caixas overfull/underfull",
+    "insertSnippet": "Inserir snippet…",
+    "manageSnippets": "Gerenciar snippets…",
+    "snippetFromSelection": "Criar snippet a partir da seleção",
+    "openSnippetsJson": "Abrir snippets globais (JSON)"
   },
   "settings": {
     "jsonDesktopOnly": "O arquivo de configurações só existe no app desktop.",
@@ -418,5 +423,51 @@
     "installing": "Instalando {names}",
     "installed": "Instalado: {names}.",
     "unresolved": "Não encontrei pacote do TeX Live para: {files}. Se for um arquivo seu, confira o nome e o caminho."
+  },
+  "snippets": {
+    "title": "Snippets",
+    "search": "Buscar snippets",
+    "filter": "Filtrar por escopo",
+    "scope": {
+      "all": "Todos",
+      "builtin": "Padrão",
+      "global": "Global",
+      "project": "Projeto"
+    },
+    "new": "Novo",
+    "import": "Importar…",
+    "export": "Exportar…",
+    "builtinNote": "Snippet do padrão embutido: salvar cria uma cópia que o sobrescreve (mesmo prefixo).",
+    "name": "Nome",
+    "prefix": "Prefixo(s), separados por vírgula",
+    "description": "Descrição",
+    "body": "Corpo (sintaxe do VS Code)",
+    "languages": "Linguagens",
+    "keybinding": "Atalho (opcional)",
+    "saveIn": "Salvar em",
+    "preview": "Prévia",
+    "save": "Salvar",
+    "saveCopy": "Salvar cópia",
+    "delete": "Excluir",
+    "openJson": "Abrir JSON",
+    "saved": "Snippet salvo.",
+    "imported": "{n} snippet(s) importado(s).",
+    "exported": "Snippets exportados para {path}.",
+    "noSelection": "Selecione um trecho no editor para criar o snippet.",
+    "settingsTitle": "Snippets",
+    "order": "Posição no autocomplete",
+    "orderBefore": "Antes dos comandos",
+    "orderAfter": "Depois dos comandos",
+    "categoriesHint": "Categorias da biblioteca padrão ativas:",
+    "problem": "Snippets: {message}",
+    "category": {
+      "abnt": "Citações ABNT e bibliografia",
+      "beamer": "Apresentações (beamer)",
+      "code": "Código (listings/minted)",
+      "floats": "Figuras e tabelas",
+      "math": "Matemática",
+      "structure": "Estrutura e listas",
+      "units": "Unidades (siunitx)"
+    }
   }
 }

@@ -9,6 +9,7 @@ const THEMES: [&str; 3] = ["system", "dark", "light"];
 const LOCALES: [&str; 3] = ["auto", "pt-BR", "en"];
 const TEX_SOURCES: [&str; 4] = ["unset", "system", "managed", "skipped"];
 const AUTO_INSTALL: [&str; 3] = ["ask", "auto", "never"];
+const SNIPPET_ORDER: [&str; 2] = ["before", "after"];
 /// Nível de zoom da interface (como `window.zoomLevel` do VS Code): cada passo = 20%.
 pub const ZOOM_RANGE: std::ops::RangeInclusive<i32> = -4..=8;
 
@@ -34,6 +35,12 @@ pub struct Settings {
     /// Zoom da interface; 0 = 100%.
     #[serde(rename = "zoomLevel")]
     pub zoom_level: i32,
+    /// Categorias da biblioteca padrão de snippets desativadas (nome do arquivo, sem `.json`).
+    #[serde(rename = "snippetsDisabled")]
+    pub snippets_disabled: Vec<String>,
+    /// Snippets aparecem `before` (antes) ou `after` (depois) dos comandos no autocomplete.
+    #[serde(rename = "snippetsOrder")]
+    pub snippets_order: String,
 }
 
 impl Default for Settings {
@@ -47,6 +54,8 @@ impl Default for Settings {
             tex_mirror: None,
             tex_auto_install: "ask".into(),
             zoom_level: 0,
+            snippets_disabled: Vec::new(),
+            snippets_order: "before".into(),
         }
     }
 }
@@ -100,6 +109,12 @@ impl Settings {
             return Err(SettingsError::InvalidValue {
                 field: "zoomLevel",
                 value: self.zoom_level.to_string(),
+            });
+        }
+        if !SNIPPET_ORDER.contains(&self.snippets_order.as_str()) {
+            return Err(SettingsError::InvalidValue {
+                field: "snippetsOrder",
+                value: self.snippets_order.clone(),
             });
         }
         Ok(())
@@ -169,6 +184,17 @@ mod tests {
             3
         );
         assert!(Settings::from_json(r#"{"zoomLevel":99}"#).is_err());
+    }
+
+    #[test]
+    fn snippet_settings_default_and_validate() {
+        let d = Settings::default();
+        assert!(d.snippets_disabled.is_empty());
+        assert_eq!(d.snippets_order, "before");
+        let s = Settings::from_json(r#"{"snippetsDisabled":["math"],"snippetsOrder":"after"}"#)
+            .unwrap();
+        assert_eq!(s.snippets_disabled, ["math"]);
+        assert!(Settings::from_json(r#"{"snippetsOrder":"meio"}"#).is_err());
     }
 
     #[test]

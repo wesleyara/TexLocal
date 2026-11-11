@@ -15,6 +15,7 @@ import PdfViewer from './PdfViewer.vue'
 import RenameDialog from './RenameDialog.vue'
 import SearchPanel from './SearchPanel.vue'
 import SettingsDialog from './SettingsDialog.vue'
+import SnippetsDialog from './SnippetsDialog.vue'
 import SplitHandle from './SplitHandle.vue'
 import StatusBar from './StatusBar.vue'
 import TexWizard from './TexWizard.vue'
@@ -128,6 +129,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     <StatusBar />
     <CommandPalette />
     <SettingsDialog />
+    <SnippetsDialog />
     <TexWizard />
     <RenameDialog />
     <ToastHost />

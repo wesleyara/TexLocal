@@ -124,7 +124,8 @@
     "filesPlaceholder": "Search file by name…",
     "noResults": "No results.",
     "noFiles": "No project open to search files in.",
-    "recent": "Recent"
+    "recent": "Recent",
+    "snippetsPlaceholder": "Search snippets…"
   },
   "cmd": {
     "palette": "Show all commands",
@@ -158,7 +159,11 @@
     "toggleAutoCompile": "Toggle automatic compilation",
     "toggleShellEscape": "Toggle shell-escape (runs commands from the document)",
     "syncToPdf": "Show cursor position in the PDF",
-    "toggleBoxWarnings": "Show/hide overfull/underfull box warnings"
+    "toggleBoxWarnings": "Show/hide overfull/underfull box warnings",
+    "insertSnippet": "Insert snippet…",
+    "manageSnippets": "Manage snippets…",
+    "snippetFromSelection": "Create snippet from selection",
+    "openSnippetsJson": "Open global snippets (JSON)"
   },
   "settings": {
     "jsonDesktopOnly": "The settings file is only available in the desktop app.",
@@ -418,5 +423,51 @@
     "installing": "Installing {names}",
     "installed": "Installed: {names}.",
     "unresolved": "No TeX Live package provides: {files}. If it is your own file, check its name and path."
+  },
+  "snippets": {
+    "title": "Snippets",
+    "search": "Search snippets",
+    "filter": "Filter by scope",
+    "scope": {
+      "all": "All",
+      "builtin": "Built-in",
+      "global": "Global",
+      "project": "Project"
+    },
+    "new": "New",
+    "import": "Import…",
+    "export": "Export…",
+    "builtinNote": "Built-in snippet: saving creates a copy that overrides it (same prefix).",
+    "name": "Name",
+    "prefix": "Prefix(es), comma-separated",
+    "description": "Description",
+    "body": "Body (VS Code syntax)",
+    "languages": "Languages",
+    "keybinding": "Shortcut (optional)",
+    "saveIn": "Save in",
+    "preview": "Preview",
+    "save": "Save",
+    "saveCopy": "Save copy",
+    "delete": "Delete",
+    "openJson": "Open JSON",
+    "saved": "Snippet saved.",
+    "imported": "{n} snippet(s) imported.",
+    "exported": "Snippets exported to {path}.",
+    "noSelection": "Select some text in the editor to create the snippet.",
+    "settingsTitle": "Snippets",
+    "order": "Position in autocomplete",
+    "orderBefore": "Before commands",
+    "orderAfter": "After commands",
+    "categoriesHint": "Active categories of the built-in library:",
+    "problem": "Snippets: {message}",
+    "category": {
+      "abnt": "ABNT citations and bibliography",
+      "beamer": "Presentations (beamer)",
+      "code": "Code (listings/minted)",
+      "floats": "Figures and tables",
+      "math": "Math",
+      "structure": "Structure and lists",
+      "units": "Units (siunitx)"
+    }
   }
 }

@@ -1,0 +1,57 @@
+{
+  "Figura": {
+    "prefix": ["fig", "figure"],
+    "scope": "latex",
+    "description": "Figura com legenda e rótulo",
+    "body": [
+      "\\begin{figure}[${1|htbp,h!,t,b|}]",
+      "  \\centering",
+      "  \\includegraphics[width=${2:0.8}\\linewidth]{${3:arquivo}}",
+      "  \\caption{${4:Legenda}}",
+      "  \\label{fig:${5:rotulo}}",
+      "\\end{figure}",
+      "$0"
+    ]
+  },
+  "Tabela (booktabs)": {
+    "prefix": ["tab", "table"],
+    "scope": "latex",
+    "description": "Tabela flutuante com booktabs (requer \\usepackage{booktabs})",
+    "body": [
+      "\\begin{table}[${1|htbp,h!,t,b|}]",
+      "  \\centering",
+      "  \\caption{${2:Legenda}}",
+      "  \\label{tab:${3:rotulo}}",
+      "  \\begin{tabular}{${4:lcr}}",
+      "    \\toprule",
+      "    ${5:Cabeçalho} & ${6:Cabeçalho} \\\\\\\\",
+      "    \\midrule",
+      "    ${7:Dado} & ${8:Dado} \\\\\\\\",
+      "    \\bottomrule",
+      "  \\end{tabular}",
+      "\\end{table}",
+      "$0"
+    ]
+  },
+  "Subfiguras": {
+    "prefix": "subfig",
+    "scope": "latex",
+    "description": "Duas subfiguras lado a lado (requer subcaption)",
+    "body": [
+      "\\begin{figure}[htbp]",
+      "  \\centering",
+      "  \\begin{subfigure}{0.48\\linewidth}",
+      "    \\includegraphics[width=\\linewidth]{${1:a}}",
+      "    \\caption{${2:Legenda A}}",
+      "  \\end{subfigure}\\hfill",
+      "  \\begin{subfigure}{0.48\\linewidth}",
+      "    \\includegraphics[width=\\linewidth]{${3:b}}",
+      "    \\caption{${4:Legenda B}}",
+      "  \\end{subfigure}",
+      "  \\caption{${5:Legenda geral}}",
+      "  \\label{fig:${6:rotulo}}",
+      "\\end{figure}",
+      "$0"
+    ]
+  }
+}

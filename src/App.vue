@@ -5,6 +5,7 @@ import { setLocale } from './i18n'
 import { useEditorStore } from './stores/editor'
 import { useProjectStore } from './stores/project'
 import { useSettingsStore } from './stores/settings'
+import { useSnippetsStore } from './stores/snippets'
 import { applyZoom } from './settings/zoom'
 import { useNotificationsStore } from './stores/notifications'
 import { useUiStore } from './stores/ui'
@@ -14,6 +15,7 @@ const ui = useUiStore()
 const project = useProjectStore()
 const editor = useEditorStore()
 const notifications = useNotificationsStore()
+const snippets = useSnippetsStore()
 
 onMounted(async () => {
   await settings.load()
@@ -29,6 +31,7 @@ onMounted(async () => {
       // pasta removida ou fora do app desktop: segue sem projeto
     }
   }
+  await snippets.init().catch(() => undefined)
 })
 
 const dark = window.matchMedia('(prefers-color-scheme: dark)')
@@ -42,6 +45,14 @@ watchEffect(() => {
 watchEffect(() => setLocale(settings.effective.locale))
 
 watchEffect(() => void applyZoom(settings.effective.zoomLevel))
+
+// Trocou de projeto: recarrega os snippets do projeto e passa a observar a nova pasta.
+watch(
+  () => project.root,
+  () => {
+    if (settings.loaded) void snippets.reload().then(() => snippets.watch())
+  },
+)
 
 // Ao salvar o settings.json aberto no editor, as alterações valem na hora.
 watch(

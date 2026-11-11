@@ -8,7 +8,11 @@ import { sameFile } from '../compile/model'
 import { gotoLabel, registerActiveView, showUsages } from '../editor/actions'
 import { buffers } from '../editor/buffers'
 import { compileLintExtension } from '../editor/compileLint'
-import { latexCompletionSources, type CompletionData } from '../editor/completions'
+import {
+  latexCompletionSources,
+  otherCompletionSources,
+  type CompletionData,
+} from '../editor/completions'
 import { languageIdFor } from '../editor/languages'
 import { refsExtension } from '../editor/refs'
 import { editorExtensions, wrapEffect } from '../editor/setup'
@@ -24,12 +28,16 @@ import { useCompileStore } from '../stores/compile'
 import { useEditorStore } from '../stores/editor'
 import { useProjectStore } from '../stores/project'
 import { useRefsStore } from '../stores/refs'
+import { useSettingsStore } from '../stores/settings'
+import { useSnippetsStore } from '../stores/snippets'
 
 const { t, te, locale } = useI18n()
 const editor = useEditorStore()
 const project = useProjectStore()
 const refs = useRefsStore()
 const compile = useCompileStore()
+const snippets = useSnippetsStore()
+const settings = useSettingsStore()
 
 const host = ref<HTMLDivElement | null>(null)
 let view: EditorView | null = null
@@ -52,6 +60,10 @@ const completionData: CompletionData = {
   userCommands: () => project.commands,
   labels: () => project.labels,
   files: () => project.filesFromMain,
+  snippets: () => snippets.all,
+  snippetsFirst: () => settings.effective.snippetsOrder === 'before',
+  filePath: () => editor.active ?? '',
+  workspace: () => project.root ?? '',
 }
 
 function spellLang(): string | null {
@@ -113,7 +125,10 @@ function stateFor(path: string): EditorState {
     extensions: editorExtensions({
       path,
       prefs: { wrap: editor.prefs.wrap, locale: locale.value },
-      completionSources: latexCompletionSources(completionData),
+      completionSources:
+        languageIdFor(path) === 'latex'
+          ? latexCompletionSources(completionData)
+          : otherCompletionSources(completionData, languageIdFor(path)),
       extra: [
         EditorView.updateListener.of((u) => onUpdate(path, u.state, u.docChanged)),
         EditorView.domEventHandlers({ blur: () => editor.onBlur() }),

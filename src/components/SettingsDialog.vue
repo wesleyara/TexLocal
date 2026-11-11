@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   allCommands,
+  commandTitle,
   effectiveBinding,
   eventToBinding,
   findConflicts,
@@ -12,10 +13,12 @@ import {
   validateSettings,
   type AutoInstall,
   type LocaleSetting,
+  type SnippetOrder,
   type ThemeSetting,
 } from '../settings/schema'
 import { useNotificationsStore } from '../stores/notifications'
 import { useSettingsStore } from '../stores/settings'
+import { useSnippetsStore } from '../stores/snippets'
 import { useUiStore } from '../stores/ui'
 import ResourcesPanel from './ResourcesPanel.vue'
 
@@ -23,6 +26,14 @@ const { t } = useI18n()
 const ui = useUiStore()
 const settings = useSettingsStore()
 const notifications = useNotificationsStore()
+const snippets = useSnippetsStore()
+
+function toggleCategory(category: string, enabled: boolean) {
+  const off = new Set(settings.effective.snippetsDisabled)
+  if (enabled) off.delete(category)
+  else off.add(category)
+  void save({ snippetsDisabled: [...off] })
+}
 
 const search = ref('')
 const capturing = ref<string | null>(null)
@@ -47,6 +58,11 @@ const matches = (label: string) => label.toLowerCase().includes(search.value.tri
 const showTheme = computed(() => matches(t('settings.theme')))
 const showLanguage = computed(() => matches(t('settings.language')))
 
+function titleOf(id: string): string {
+  const x = allCommands().find((c) => c.id === id)
+  return x ? commandTitle(x, t) : id
+}
+
 const shortcutRows = computed(() => {
   const overrides = settings.effective.keybindings
   const conflicts = findConflicts(allCommands(), overrides)
@@ -56,13 +72,13 @@ const shortcutRows = computed(() => {
       const group = conflicts.find((g) => g.includes(c.id))
       return {
         id: c.id,
-        title: t(c.titleKey),
+        title: commandTitle(c, t),
         shortcut: b ? formatBinding(b) : '—',
         overridden: c.id in overrides,
         conflictWith: group
           ? group
               .filter((id) => id !== c.id)
-              .map((id) => t(allCommands().find((x) => x.id === id)?.titleKey ?? id))
+              .map((id) => titleOf(id))
               .join(', ')
           : '',
       }
@@ -184,6 +200,32 @@ function close() {
           />
         </label>
         <button class="row-btn" @click="ui.wizardOpen = true">{{ t('settings.texWizard') }}</button>
+
+        <h2>{{ t('snippets.settingsTitle') }}</h2>
+        <label class="row">
+          <span>{{ t('snippets.order') }}</span>
+          <select
+            :value="settings.effective.snippetsOrder"
+            @change="
+              save({ snippetsOrder: ($event.target as HTMLSelectElement).value as SnippetOrder })
+            "
+          >
+            <option value="before">{{ t('snippets.orderBefore') }}</option>
+            <option value="after">{{ t('snippets.orderAfter') }}</option>
+          </select>
+        </label>
+        <p class="hint">{{ t('snippets.categoriesHint') }}</p>
+        <label v-for="c in snippets.categories" :key="c" class="row cat">
+          <span>{{ t(`snippets.category.${c}`) }}</span>
+          <input
+            type="checkbox"
+            :checked="!snippets.disabled.has(c)"
+            @change="toggleCategory(c, ($event.target as HTMLInputElement).checked)"
+          />
+        </label>
+        <button class="row-btn" @click="ui.snippetsOpen = true">
+          {{ t('cmd.manageSnippets') }}
+        </button>
 
         <ResourcesPanel />
 

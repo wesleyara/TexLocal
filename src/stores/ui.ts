@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { reactive, ref, watch } from 'vue'
 
 export type ViewMode = 'split' | 'editor' | 'pdf'
-export type PaletteMode = 'commands' | 'files' | null
+export type PaletteMode = 'commands' | 'files' | 'snippets' | null
 export type SidebarPanel = 'files' | 'search'
 
 export interface LayoutState {
@@ -51,6 +51,9 @@ export const useUiStore = defineStore('ui', () => {
   const paletteMode = ref<PaletteMode>(null)
   const settingsOpen = ref(false)
   const wizardOpen = ref(false)
+  const snippetsOpen = ref(false)
+  /** Corpo pré-preenchido ao abrir o editor de snippets ("criar a partir da seleção"). */
+  const snippetDraft = ref<string | null>(null)
   const sidebarPanel = ref<SidebarPanel>('files')
   /** Incrementa para pedir foco no campo de busca do projeto. */
   const searchFocusTick = ref(0)
@@ -114,6 +117,8 @@ export const useUiStore = defineStore('ui', () => {
     paletteMode,
     settingsOpen,
     wizardOpen,
+    snippetsOpen,
+    snippetDraft,
     sidebarPanel,
     searchFocusTick,
     showSidebarPanel,

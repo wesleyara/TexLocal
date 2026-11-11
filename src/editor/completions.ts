@@ -9,6 +9,9 @@ import {
 import type { EditorView } from '@codemirror/view'
 import type { UserCommand } from '../project/api'
 import type { LabelDef } from '../project/model'
+import { emptyContext, expandBody } from '../snippets/expand'
+import { insertSnippet, snippetChoiceSource } from '../snippets/engine'
+import { appliesTo, type Snippet } from '../snippets/model'
 import {
   CLASS_PACKAGES,
   COMMANDS,
@@ -26,6 +29,13 @@ export interface CompletionData {
   labels(): LabelDef[]
   /** Arquivos do projeto relativos à pasta do arquivo principal, com `/`. */
   files(): string[]
+  /** Snippets ativos (EP05); ausente = sem snippets no autocomplete. */
+  snippets?(): Snippet[]
+  /** Snippets antes dos comandos nas sugestões (padrão) ou depois. */
+  snippetsFirst?(): boolean
+  /** Arquivo aberto e raiz do projeto, para `$TM_FILENAME` e afins. */
+  filePath?(): string
+  workspace?(): string
 }
 
 const IMAGE_EXT = /\.(png|jpe?g|pdf|eps|svg)$/i
@@ -192,6 +202,62 @@ function pathSource(data: CompletionData): CompletionSource {
   }
 }
 
+/** Texto que o snippet produz, com os valores padrão dos placeholders (prévia no autocomplete). */
+export function snippetPreview(body: string): string {
+  return expandBody(body.replace(/\t/g, '  '), emptyContext()).text
+}
+
+/** Sugestões de snippets (TL-504): um item por prefixo, com ícone próprio e prévia expandida. */
+export function snippetSource(data: CompletionData, language: string): CompletionSource {
+  return (context) => {
+    const word = context.matchBefore(/[\\@\w*:.-]+$/)
+    if (!word && !context.explicit) return null
+    const from = word ? word.from : context.pos
+    const boost = data.snippetsFirst?.() === false ? -20 : 20
+    const options: Completion[] = []
+    for (const s of data.snippets?.() ?? []) {
+      if (!appliesTo(s, language)) continue
+      for (const prefix of s.prefixes) {
+        options.push({
+          label: prefix,
+          detail: s.name,
+          type: 'snippet',
+          boost,
+          info: () => {
+            const pre = document.createElement('pre')
+            pre.className = 'cm-snippet-preview'
+            if (s.description) pre.append(`${s.description}\n\n`)
+            pre.append(snippetPreview(s.body))
+            return pre
+          },
+          apply: (view: EditorView, _c: Completion, f: number, to: number) => {
+            void insertSnippet(view, s.body, {
+              from: f,
+              to,
+              ctx: { filePath: data.filePath?.() ?? '', workspaceFolder: data.workspace?.() ?? '' },
+            })
+          },
+        })
+      }
+    }
+    if (!options.length) return null
+    return { from, options, validFor: /^[\\@\w*:.-]*$/ }
+  }
+}
+
 export function latexCompletionSources(data: CompletionData): CompletionSource[] {
-  return [envSource(data), refSource(data), packageSource(), pathSource(data), commandSource(data)]
+  return [
+    snippetChoiceSource,
+    envSource(data),
+    refSource(data),
+    packageSource(),
+    pathSource(data),
+    snippetSource(data, 'latex'),
+    commandSource(data),
+  ]
+}
+
+/** Fontes de autocomplete para arquivos que não são LaTeX (só snippets). */
+export function otherCompletionSources(data: CompletionData, language: string): CompletionSource[] {
+  return [snippetChoiceSource, snippetSource(data, language)]
 }

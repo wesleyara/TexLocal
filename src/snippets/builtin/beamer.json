@@ -1,0 +1,26 @@
+{
+  "Frame (beamer)": {
+    "prefix": "frame",
+    "scope": "latex",
+    "description": "Slide do beamer",
+    "body": ["\\begin{frame}{${1:Título}}", "  ${2:Conteúdo}", "\\end{frame}", "$0"]
+  },
+  "Frame com colunas": {
+    "prefix": "columns",
+    "scope": "latex",
+    "description": "Slide com duas colunas",
+    "body": [
+      "\\begin{frame}{${1:Título}}",
+      "  \\begin{columns}",
+      "    \\begin{column}{0.5\\textwidth}",
+      "      ${2:Esquerda}",
+      "    \\end{column}",
+      "    \\begin{column}{0.5\\textwidth}",
+      "      ${3:Direita}",
+      "    \\end{column}",
+      "  \\end{columns}",
+      "\\end{frame}",
+      "$0"
+    ]
+  }
+}

@@ -30,6 +30,7 @@ import {
 } from '@codemirror/view'
 import { tags as t } from '@lezer/highlight'
 import { insertEndOnEnter, latexFolding, envRenameSync } from './behaviors'
+import { snippetEngine } from '../snippets/engine'
 import { languageFor, languageIdFor } from './languages'
 
 export const wrapCompartment = new Compartment()
@@ -69,12 +70,94 @@ const theme = EditorView.theme({
   '.cm-tooltip': {
     backgroundColor: 'var(--bg-elevated)',
     border: '1px solid var(--border)',
+    borderRadius: '8px',
+    boxShadow: '0 8px 24px rgb(0 0 0 / 28%), 0 1px 3px rgb(0 0 0 / 20%)',
     color: 'var(--text)',
+    overflow: 'hidden',
   },
+  '.cm-tooltip.cm-tooltip-autocomplete': { padding: '4px', minWidth: '260px' },
+  '.cm-tooltip-autocomplete > ul': {
+    fontFamily: 'var(--font-mono)',
+    fontSize: '12.5px',
+    maxHeight: '264px',
+    scrollbarWidth: 'thin',
+    scrollbarColor: 'var(--border) transparent',
+  },
+  '.cm-tooltip-autocomplete > ul > li': {
+    display: 'flex',
+    alignItems: 'center',
+    padding: '3px 8px 3px 6px',
+    borderRadius: '5px',
+    lineHeight: '1.55',
+    transition: 'background-color 80ms',
+  },
+  '.cm-tooltip-autocomplete > ul > li:hover': { backgroundColor: 'var(--bg-hover)' },
   '.cm-tooltip-autocomplete ul li[aria-selected]': {
-    backgroundColor: 'var(--accent)',
-    color: 'var(--accent-contrast)',
+    backgroundColor: 'color-mix(in srgb, var(--accent) 24%, transparent)',
+    color: 'var(--text)',
+    boxShadow: 'inset 2px 0 0 var(--accent)',
   },
+  '.cm-completionLabel': { flex: 'none' },
+  '.cm-completionMatchedText': {
+    textDecoration: 'none',
+    fontWeight: '700',
+    color: 'var(--accent)',
+  },
+  '.cm-completionDetail': {
+    marginLeft: 'auto',
+    paddingLeft: '18px',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    fontFamily: 'var(--font-ui)',
+    fontSize: '11.5px',
+    fontStyle: 'normal',
+    color: 'var(--text-muted)',
+  },
+  '.cm-completionIcon': {
+    flex: 'none',
+    width: '20px',
+    height: '20px',
+    marginRight: '8px',
+    padding: '0',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '12px',
+    opacity: '1',
+    borderRadius: '5px',
+    backgroundColor: 'color-mix(in srgb, var(--text-muted) 16%, transparent)',
+    color: 'var(--text-muted)',
+  },
+  '.cm-completionIcon-function, .cm-completionIcon-method': {
+    color: 'var(--accent)',
+    backgroundColor: 'color-mix(in srgb, var(--accent) 16%, transparent)',
+  },
+  '.cm-completionIcon-class': {
+    color: 'var(--syn-env)',
+    backgroundColor: 'color-mix(in srgb, var(--syn-env) 16%, transparent)',
+  },
+  '.cm-completionIcon-constant, .cm-completionIcon-variable': {
+    color: 'var(--syn-math)',
+    backgroundColor: 'color-mix(in srgb, var(--syn-math) 16%, transparent)',
+  },
+  '.cm-completionIcon-keyword, .cm-completionIcon-namespace': {
+    color: 'var(--syn-keyword)',
+    backgroundColor: 'color-mix(in srgb, var(--syn-keyword) 16%, transparent)',
+  },
+  '.cm-completionIcon-snippet, .cm-completionIcon-enum': {
+    color: 'var(--syn-string)',
+    backgroundColor: 'color-mix(in srgb, var(--syn-string) 16%, transparent)',
+  },
+  '.cm-completionInfo': {
+    padding: '8px 12px',
+    fontFamily: 'var(--font-ui)',
+    fontSize: '12px',
+    color: 'var(--text-muted)',
+    borderRadius: '8px',
+  },
+  '.cm-completionIcon-snippet:after': { content: "'✂'" },
+  '.cm-snippet-preview': { margin: 0, fontFamily: 'var(--font-mono)', whiteSpace: 'pre' },
   '.cm-panels': { backgroundColor: 'var(--bg-panel)', color: 'var(--text)' },
   '.cm-panels-top': { borderBottom: '1px solid var(--border)' },
   '.cm-searchMatch': { backgroundColor: 'color-mix(in srgb, var(--accent) 30%, transparent)' },
@@ -165,9 +248,10 @@ export function editorExtensions(opts: SetupOptions): Extension[] {
     languageFor(opts.path),
     isLatex ? [latexFolding, envRenameSync] : [],
     autocompletion({
-      override: isLatex ? opts.completionSources : undefined,
+      override: opts.completionSources.length ? opts.completionSources : undefined,
       activateOnTyping: true,
     }),
+    snippetEngine(),
     Prec.high(keymap.of(isLatex ? [{ key: 'Enter', run: insertEndOnEnter }] : [])),
     keymap.of([
       ...closeBracketsKeymap,

@@ -1,0 +1,61 @@
+{
+  "Seção sem número": {
+    "prefix": ["sec*", "section*"],
+    "scope": "latex",
+    "description": "Seção não numerada",
+    "body": "\\section*{${1:Título}}\n$0"
+  },
+  "Seção": {
+    "prefix": "sec",
+    "scope": "latex",
+    "description": "Seção com rótulo",
+    "body": "\\section{${1:Título}}\\label{sec:${1/[^A-Za-z0-9]+/-/g}}\n$0"
+  },
+  "Lista (itemize)": {
+    "prefix": ["itm", "itemize"],
+    "scope": "latex",
+    "description": "Lista com marcadores",
+    "body": ["\\begin{itemize}", "  \\item ${1:item}", "  \\item $2", "\\end{itemize}", "$0"]
+  },
+  "Lista numerada (enumerate)": {
+    "prefix": ["enu", "enumerate"],
+    "scope": "latex",
+    "description": "Lista numerada",
+    "body": ["\\begin{enumerate}", "  \\item ${1:item}", "  \\item $2", "\\end{enumerate}", "$0"]
+  },
+  "Teorema": {
+    "prefix": ["thm", "theorem"],
+    "scope": "latex",
+    "description": "Teorema com rótulo (requer amsthm)",
+    "body": [
+      "\\begin{theorem}\\label{thm:${1:rotulo}}",
+      "  ${2:Enunciado.}",
+      "\\end{theorem}",
+      "$0"
+    ]
+  },
+  "Demonstração": {
+    "prefix": ["proof", "dem"],
+    "scope": "latex",
+    "description": "Demonstração (amsthm)",
+    "body": ["\\begin{proof}", "  ${1:Prova.}", "\\end{proof}", "$0"]
+  },
+  "Ambiente genérico": {
+    "prefix": "beg",
+    "scope": "latex",
+    "description": "\\begin{…} … \\end{…} com nome espelhado",
+    "body": ["\\begin{${1:ambiente}}", "  ${0:$TM_SELECTED_TEXT}", "\\end{$1}"]
+  },
+  "Negrito": {
+    "prefix": "bf",
+    "scope": "latex",
+    "description": "\\textbf{…} (usa a seleção)",
+    "body": "\\textbf{${1:$TM_SELECTED_TEXT}}$0"
+  },
+  "Cabeçalho do arquivo": {
+    "prefix": "hdr",
+    "scope": "latex",
+    "description": "Comentário com nome do arquivo e ano",
+    "body": "% $TM_FILENAME — $CURRENT_YEAR\n$0"
+  }
+}

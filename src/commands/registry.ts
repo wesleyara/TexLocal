@@ -1,6 +1,8 @@
 export interface Command {
   id: string
   titleKey: string
+  /** Título literal (comandos dinâmicos, como snippets); tem precedência sobre `titleKey`. */
+  title?: string
   /** Atalho padrão, ex.: "Mod+Shift+P" (Mod = Ctrl no Windows/Linux, Cmd no macOS). */
   keybinding?: string
   run: () => void
@@ -18,6 +20,15 @@ const commands = new Map<string, Command>()
 
 export function registerCommand(command: Command): void {
   commands.set(command.id, command)
+}
+
+export function unregisterCommand(id: string): void {
+  commands.delete(id)
+}
+
+/** Texto exibido do comando, traduzido por `t` quando não há título literal. */
+export function commandTitle(command: Command, t: (key: string) => string): string {
+  return command.title ?? t(command.titleKey)
 }
 
 export function clearCommands(): void {

@@ -1,0 +1,67 @@
+{
+  "Equação": {
+    "prefix": ["eq", "equation"],
+    "scope": "latex",
+    "description": "Equação numerada com rótulo",
+    "body": [
+      "\\begin{equation}",
+      "  ${1:E = mc^2}",
+      "  \\label{eq:${2:rotulo}}",
+      "\\end{equation}",
+      "$0"
+    ]
+  },
+  "Alinhamento (align)": {
+    "prefix": ["ali", "align"],
+    "scope": "latex",
+    "description": "Equações alinhadas (amsmath)",
+    "body": [
+      "\\begin{align}",
+      "  ${1:a} &= ${2:b} \\\\\\\\",
+      "  ${3:c} &= ${4:d}",
+      "\\end{align}",
+      "$0"
+    ]
+  },
+  "Fração": {
+    "prefix": "frac",
+    "scope": "latex",
+    "description": "Fração",
+    "body": "\\frac{${1:numerador}}{${2:denominador}}$0"
+  },
+  "Somatório": {
+    "prefix": "sum",
+    "scope": "latex",
+    "description": "Somatório com limites",
+    "body": "\\sum_{${1:i=1}}^{${2:n}} ${3:a_i}$0"
+  },
+  "Integral": {
+    "prefix": "int",
+    "scope": "latex",
+    "description": "Integral definida",
+    "body": "\\int_{${1:a}}^{${2:b}} ${3:f(x)} \\, \\mathrm{d}${4:x}$0"
+  },
+  "Matriz": {
+    "prefix": ["mat", "matrix"],
+    "scope": "latex",
+    "description": "Matriz 2×2 (escolha o delimitador)",
+    "body": [
+      "\\begin{${1|pmatrix,bmatrix,vmatrix,Bmatrix,matrix|}}",
+      "  ${2:a} & ${3:b} \\\\\\\\",
+      "  ${4:c} & ${5:d}",
+      "\\end{$1}",
+      "$0"
+    ]
+  },
+  "Casos": {
+    "prefix": "cases",
+    "scope": "latex",
+    "description": "Função definida por partes",
+    "body": [
+      "${1:f(x)} = \\begin{cases}",
+      "  ${2:a} & \\text{se } ${3:x > 0} \\\\\\\\",
+      "  ${4:b} & \\text{caso contrário}",
+      "\\end{cases}$0"
+    ]
+  }
+}

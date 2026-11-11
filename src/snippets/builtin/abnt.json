@@ -1,0 +1,66 @@
+{
+  "Citação ABNT (parênteses)": {
+    "prefix": ["cite", "citep"],
+    "scope": "latex",
+    "description": "Citação entre parênteses (abntex2cite)",
+    "body": "\\cite{${1:chave}}$0"
+  },
+  "Citação ABNT (no texto)": {
+    "prefix": ["citeonline", "citet"],
+    "scope": "latex",
+    "description": "Citação no texto: Autor (ano)",
+    "body": "\\citeonline{${1:chave}}$0"
+  },
+  "Citação ABNT com página": {
+    "prefix": "citepag",
+    "scope": "latex",
+    "description": "Citação com página: (Autor, ano, p. 10)",
+    "body": "\\cite[p.~${2:10}]{${1:chave}}$0"
+  },
+  "Citação direta longa (ABNT)": {
+    "prefix": "citacao",
+    "scope": "latex",
+    "description": "Bloco de citação com mais de três linhas",
+    "body": [
+      "\\begin{citacao}",
+      "  ${1:Texto citado.}",
+      "\\end{citacao}",
+      "\\cite[p.~${2:10}]{${3:chave}}$0"
+    ]
+  },
+  "Referências (ABNT)": {
+    "prefix": "bibabnt",
+    "scope": "latex",
+    "description": "Bibliografia no estilo abntex2-alf",
+    "body": ["\\bibliography{${1:referencias}}", "\\bibliographystyle{abntex2-alf}", "$0"]
+  },
+  "Entrada @book": {
+    "prefix": "@book",
+    "scope": "bibtex",
+    "description": "Livro",
+    "body": [
+      "@book{${1:chave},",
+      "  author    = {${2:Sobrenome, Nome}},",
+      "  title     = {${3:Título}},",
+      "  publisher = {${4:Editora}},",
+      "  address   = {${5:Cidade}},",
+      "  year      = {${6:$CURRENT_YEAR}},",
+      "}"
+    ]
+  },
+  "Entrada @article": {
+    "prefix": "@article",
+    "scope": "bibtex",
+    "description": "Artigo de periódico",
+    "body": [
+      "@article{${1:chave},",
+      "  author  = {${2:Sobrenome, Nome}},",
+      "  title   = {${3:Título}},",
+      "  journal = {${4:Periódico}},",
+      "  year    = {${5:$CURRENT_YEAR}},",
+      "  volume  = {${6}},",
+      "  pages   = {${7}},",
+      "}"
+    ]
+  }
+}

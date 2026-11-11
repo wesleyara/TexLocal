@@ -1,0 +1,25 @@
+{
+  "Código (listings)": {
+    "prefix": ["lst", "listing"],
+    "scope": "latex",
+    "description": "Bloco de código com listings",
+    "body": [
+      "\\begin{lstlisting}[language=${1:Python}, caption={${2:Legenda}}, label={lst:${3:rotulo}}]",
+      "${4:código}",
+      "\\end{lstlisting}",
+      "$0"
+    ]
+  },
+  "Código (minted)": {
+    "prefix": "minted",
+    "scope": "latex",
+    "description": "Bloco de código com minted (requer shell-escape)",
+    "body": ["\\begin{minted}[linenos]{${1:python}}", "${2:código}", "\\end{minted}", "$0"]
+  },
+  "Código em linha": {
+    "prefix": "lstinline",
+    "scope": "latex",
+    "description": "Trecho de código na linha",
+    "body": "\\lstinline|${1:$TM_SELECTED_TEXT}|$0"
+  }
+}
